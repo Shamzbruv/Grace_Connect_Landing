@@ -4,26 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy - Grace Connect</title>
+    <meta name="description" content="The full privacy notice for Grace Connect users, churches, administrators, and app store disclosures.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="page-legal">
+<body class="page-legal ">
+    <div class="bg-gradient-gold"></div>
+    <div class="bg-gradient-navy"></div>
+    
     <nav class="navbar" id="navbar">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">
                 <img src="assets/logo.png" alt="Grace Connect Logo" onerror="this.src='https://via.placeholder.com/40x40?text=GC'">
                 <span>Grace Connect</span>
             </a>
-            
-            <button class="mobile-menu-btn" id="mobileMenuBtn">
-                <i class="fas fa-bars"></i>
-            </button>
-
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation menu"><i class="fas fa-bars"></i></button>
             <ul class="nav-links" id="navLinks">
                 <li><a href="index.html#home">Home</a></li>
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="legal.html">Legal</a></li>
                 <li class="nav-actions">
                     <a href="member-signup.html" class="nav-link-btn text-btn">Member Access</a>
                     <a href="register-church.html" class="nav-link-btn primary-btn">Register Church</a>
@@ -35,59 +37,122 @@
     <main class="page-content legal-content">
         <div class="container animate-up">
             <div class="legal-wrapper glass-card">
-                <h1>Privacy Policy</h1>
-                <p class="last-updated">Last Updated: June 15, 2026</p>
-                
+                <div class="legal-hero">
+                    <span class="legal-kicker">Grace Connect Legal Center</span>
+                    <h1>Privacy Policy</h1>
+                    <p class="legal-summary">The full privacy notice for Grace Connect users, churches, administrators, and app store disclosures.</p>
+                    <p class="last-updated">Last Updated: June 16, 2026</p>
+                </div>
                 <div class="legal-text">
-                    <h2>1. Information Collected</h2>
-                    <p>When you register a church or join as a member, we collect necessary personal information including your name, email address, phone number, and church affiliation details.</p>
-
-                    <h2>2. Church & Member Data</h2>
-                    <p>Any data uploaded to your church's digital space (such as prayer requests, attendance, giving records, and community feed posts) is strictly associated with your church and managed by your Church Administrators.</p>
-
-                    <h2>3. How Information is Used</h2>
-                    <p>We use your information to provide the Grace Connect platform functionality, authenticate users securely, facilitate church communication, and send important service updates.</p>
-
-                    <h2>4. Email Communication</h2>
-                    <p>We will send automated emails regarding account verification, church approval statuses, password resets, and critical platform updates. We do not sell your email address to third parties.</p>
-
-                    <h2>5. Data Protection</h2>
-                    <p>We implement robust security measures to maintain the safety of your personal information. Authentication and data are managed securely via industry-standard protocols.</p>
-
-                    <h2>6. Supabase/Backend Storage Notice</h2>
-                    <p>Grace Connect utilizes Supabase for secure cloud database storage and authentication. Your data is encrypted at rest and strictly governed by Row Level Security (RLS) policies to ensure that only authorized members of your church can access your church's data.</p>
-
-                    <h2>7. User Rights</h2>
-                    <p>You have the right to access, correct, or request the deletion of your personal data at any time. Church Administrators can also request the complete deletion of their church's instance from the platform.</p>
-
-                    <h2>8. Contact Information</h2>
-                    <p>If you have questions about this Privacy Policy or your data, please contact our privacy team at privacy@graceconnect.app.</p>
+<div class="legal-callout important">
+    <h2>Privacy Policy Summary</h2>
+    <p>This Privacy Policy explains how Grace Connect collects, uses, stores, shares, protects, and deletes information. Grace Connect is operated by <strong>I Create Solutions & Services</strong>, owned by <strong>Shamar Baker</strong>, located at <strong>Bull Bay, St Andrew, Jamaica</strong>. Grace Connect is for users who are 18 years of age or older.</p>
+</div>
+<h2>1. Scope</h2>
+<p>This Privacy Policy applies to the Grace Connect mobile app, website, church registration pages, member sign-up pages, support tools, administrative tools, and related services. It covers members, pastors, church administrators, ministry leaders, care-team members, finance users, support users, and visitors who interact with Grace Connect.</p>
+<h2>2. Data Controller and Contact</h2>
+<p>For platform-level data handling, Grace Connect is operated by I Create Solutions & Services. Churches may also act as controllers or responsible parties for data they enter, configure, approve, review, export, or manage inside their own church space. Privacy inquiries may be sent to <a href="mailto:privacy@graceconnect.app">privacy@graceconnect.app</a>. General support may be sent to <a href="mailto:support@graceconnect.app">support@graceconnect.app</a>.</p>
+<h2>3. 18+ Service</h2>
+<p>Grace Connect is not intended for children or minors. Users must be 18 years of age or older. We do not knowingly allow persons under 18 to create accounts. If we learn that an under-18 user created an account, we may suspend or delete the account and associated information, subject to legal and safety retention obligations.</p>
+<h2>4. Information You Provide</h2>
+<p>Grace Connect may collect information you provide directly, including full name, display name, email address, phone number, password through Supabase authentication, church affiliation, church name, denomination, church address, pastor/admin contact details, profile photo, cover photo, biography, parish/city/address fields, social links, ministry roles, family relationship settings, notes, support messages, uploaded images, uploaded audio, uploaded video, prayer requests, testimonies, comments, events, RSVP responses, attendance records, counseling/care requests, and giving-related references.</p>
+<h2>5. Account and Authentication Data</h2>
+<p>Grace Connect uses Supabase for authentication and session management. Authentication data may include your email address, encrypted password credentials handled by Supabase, email verification status, reset-password events, session tokens, metadata, account status, sign-up source, accepted legal version, and account creation time.</p>
+<h2>6. Church and Membership Data</h2>
+<p>Grace Connect stores information that connects users to a church space, including church ID, church name, place ID, membership status, roles, permissions, ministry group membership, approval state, and church-specific preferences. Church administrators may view, approve, edit, or remove certain data within their authorized church space.</p>
+<h2>7. Profile and Community Content</h2>
+<p>Profile and community data may include your profile photo, name, biography, prayer posts, testimonies, comments, reactions, media, ministry group messages, direct messages, family relationship settings, visibility preferences, and content reports. Some content may be visible to your church community, selected groups, care teams, administrators, or other intended recipients depending on feature settings.</p>
+<h2>8. Direct Messages and Media</h2>
+<p>Grace Connect may store direct messages, group messages, message metadata, sender/recipient IDs, delivery and read status, audio messages, media attachments, deletion flags, expiration timestamps, and block/report relationships. Some messages or media may be configured to expire after a period; however, expired or deleted content may remain temporarily in backups, logs, reports, or moderation records where necessary.</p>
+<h2>9. Prayer, Counseling, and Pastoral-Care Data</h2>
+<p>Prayer requests, counseling requests, care requests, and pastoral follow-up notes may include sensitive personal, spiritual, emotional, family, health-adjacent, or crisis-related information. You should only submit information you are comfortable sharing with the selected audience. Authorized pastors, care teams, or administrators may access this information to provide follow-up, moderate content, or protect safety.</p>
+<h2>10. Attendance and Location Data</h2>
+<p>Grace Connect may collect location data when you use attendance, check-in, or geofencing features. Location data may include device permission status, coordinates, distance from church location, church geofence radius, attendance date, service schedule, check-in status, late status, duplicate check-in prevention data, and related logs. Background location may be used only where automatic attendance is enabled and permission is granted. You can control location permission through your device settings.</p>
+<h2>11. Device, Diagnostic, and Usage Data</h2>
+<p>Grace Connect may collect device and diagnostic data such as device model, operating system, app version, build number, notification token, crash data, app section affected by a support ticket, error reports, analytics events, usage patterns, and general performance data. This information helps operate, secure, debug, and improve the app.</p>
+<h2>12. Notifications</h2>
+<p>Grace Connect may use Firebase Cloud Messaging and local notification tools to send account notices, announcements, prayer updates, event reminders, direct message alerts, ministry group updates, support notifications, and other service-related messages. You can disable notification permissions through device settings, though some app communication may be affected.</p>
+<h2>13. Giving and Payment Information</h2>
+<p>Grace Connect may display giving links configured by churches or authorized finance users. Payments may be processed by external payment providers. Grace Connect is not intended to collect or store full card numbers, bank credentials, or card security codes. We may store limited giving configuration, transaction references, receipt URLs, amount/category information, or church finance records if enabled in the app.</p>
+<h2>14. How We Use Information</h2>
+<p>We use information to create and authenticate accounts, verify email addresses, connect members to churches, approve church registrations, manage roles, deliver app features, provide prayer/community/messaging/group/event/attendance/support functions, send notifications, provide support, enforce rules, investigate reports, prevent abuse, secure the platform, comply with law, maintain records, and improve the service.</p>
+<h2>15. Legal Bases and User Consent</h2>
+<p>Grace Connect processes data based on user consent, contract necessity, legitimate operational interests, church administration needs, legal obligations, safety obligations, and user-requested feature delivery. Some features, including background location for automatic attendance, require explicit in-app permission and affirmative consent before use.</p>
+<h2>16. Sharing of Information</h2>
+<p>We may share information with the church you select or administer, authorized pastors and church administrators, care-team members, role-specific staff, service providers such as Supabase and Firebase, payment/giving providers, email/notification providers, hosting providers, legal advisors, security reviewers, law enforcement or regulators where legally required, and other users where you intentionally post, message, react, or share content.</p>
+<h2>17. Third-Party Providers</h2>
+<p>Grace Connect may rely on Supabase for authentication, database storage, edge/backend infrastructure, storage, and access controls; Firebase for notifications, analytics, diagnostics, messaging functions, and cloud services; Google Maps or location APIs for map/geofence-related functionality; Google Sign-In where enabled; app stores for distribution; and external giving/payment providers selected by churches. See the Third-Party Provider List for more details.</p>
+<h2>18. Data Security</h2>
+<p>Grace Connect is designed to use secure authentication, HTTPS/TLS transmission, encrypted provider infrastructure, Row Level Security, role-based access controls, restricted admin privileges, church-based data isolation, audit logs, reporting/blocking controls, and provider security tools. No system can be guaranteed perfectly secure. Users and church administrators must also protect passwords, devices, roles, and access.</p>
+<h2>19. Data Retention</h2>
+<p>We retain information for as long as needed to provide the service, support church operations, comply with legal obligations, resolve disputes, maintain security, prevent fraud/abuse, preserve audit records, process deletion requests, and support backups. Specific retention periods are listed in the Data Retention Schedule.</p>
+<h2>20. Account Deletion</h2>
+<p>Users may request deletion through the app where available or through the Delete My Account page. Account deletion may remove or anonymize profile data, authentication data, and account-linked data, subject to retention needed for legal, safety, audit, donation, attendance, dispute, security, or church administration reasons. Deactivation or signing out is not the same as deletion.</p>
+<h2>21. Your Rights</h2>
+<p>Depending on applicable law, you may request access, correction, deletion, restriction, objection, portability, withdrawal of consent, or information about how your data is used. You may also update many profile and privacy settings in the app. Requests may require identity verification before action is taken.</p>
+<h2>22. International Processing</h2>
+<p>Supabase, Firebase, Google, hosting providers, app store services, and other service providers may process or store information outside Jamaica depending on their infrastructure and service configuration. By using Grace Connect, you understand that data may be processed in countries with different privacy laws, subject to applicable safeguards and provider terms.</p>
+<h2>23. Public or Shared Content</h2>
+<p>Content posted to a church feed, group, testimony, prayer wall, event, or message thread may be seen by the intended audience. Other users may screenshot, copy, quote, or share content outside Grace Connect despite rules against misuse. Do not share information you are not authorized or comfortable sharing.</p>
+<h2>24. No Sale of Personal Data</h2>
+<p>Grace Connect does not sell personal and sensitive user data. We do not sell member lists, prayer requests, location data, counseling requests, attendance data, direct messages, or church information to advertisers or data brokers.</p>
+<h2>25. Privacy Policy in App Stores</h2>
+<p>This Privacy Policy is intended to support Android and iOS app disclosures. The Google Play Data Safety form and Apple App Privacy details must match the app’s actual behavior, SDKs, permissions, and data flows at the time of submission.</p>
+<h2>26. Changes to This Privacy Policy</h2>
+<p>We may update this Privacy Policy as the app changes, laws change, third-party services change, or new features are added. Material changes may be announced through the app, website, email, or sign-in prompt. Continued use after the effective date means the updated Privacy Policy applies.</p>
+<h2>27. Contact</h2>
+<p>Grace Connect / I Create Solutions & Services<br>Owner: Shamar Baker<br>Address: Bull Bay, St Andrew, Jamaica<br>Privacy Contact: <a href="mailto:privacy@graceconnect.app">privacy@graceconnect.app</a><br>Support: <a href="mailto:support@graceconnect.app">support@graceconnect.app</a></p>
                 </div>
             </div>
         </div>
     </main>
-
+    
     <footer class="footer">
         <div class="container footer-grid">
             <div class="footer-brand">
                 <div class="footer-logo">
+                    <img src="assets/logo.png" alt="Grace Connect" onerror="this.style.display='none'">
                     <span>Grace Connect</span>
                 </div>
+                <p>Grace Connect is operated by I Create Solutions & Services, owned by Shamar Baker, Bull Bay, St Andrew, Jamaica.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Platform</h4>
+                <ul>
+                    <li><a href="index.html#features">Features</a></li>
+                    <li><a href="register-church.html">Register Church</a></li>
+                    <li><a href="member-signup.html">Member Access</a></li>
+                    <li><a href="support-policy.html">Support Policy</a></li>
+                </ul>
             </div>
             <div class="footer-links">
                 <h4>Legal</h4>
                 <ul>
-                    <li><a href="terms.html">Terms of Use</a></li>
+                    <li><a href="legal.html">Legal Center</a></li>
+                    <li><a href="terms.html">Terms & Conditions</a></li>
                     <li><a href="privacy.html">Privacy Policy</a></li>
+                    <li><a href="account-deletion.html">Delete My Account</a></li>
+                    <li><a href="community-guidelines.html">Community Guidelines</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Compliance</h4>
+                <ul>
+                    <li><a href="location-disclosure.html">Location Disclosure</a></li>
+                    <li><a href="data-retention.html">Data Retention</a></li>
+                    <li><a href="app-store-disclosures.html">App Store Disclosures</a></li>
+                    <li><a href="vendors.html">Third-Party Providers</a></li>
+                    <li><a href="security-policy.html">Security Reporting</a></li>
                 </ul>
             </div>
         </div>
         <div class="footer-bottom">
             <div class="container">
-                <p>&copy; 2026 Grace Connect. All rights reserved.</p>
+                <p>&copy; 2026 Grace Connect. All rights reserved. Operated by I Create Solutions & Services.</p>
             </div>
         </div>
     </footer>
+
     <script src="js/main.js"></script>
 </body>
 </html>

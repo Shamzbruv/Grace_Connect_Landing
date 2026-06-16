@@ -1,5 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    const TERMS_VERSION = 'GC-TERMS-2026-06-16';
+    const PRIVACY_VERSION = 'GC-PRIVACY-2026-06-16';
+
+
     // --- Global: Mobile Menu ---
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const navLinks = document.getElementById('navLinks');
@@ -116,6 +120,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const adminEmail = document.getElementById('adminEmail').value.trim();
             const adminPhone = document.getElementById('adminPhone').value.trim();
             const password = document.getElementById('adminPassword').value;
+            const churchAgeConfirm = document.getElementById('churchAgeConfirm');
+            const churchAuthorizedConfirm = document.getElementById('churchAuthorizedConfirm');
+            const churchLegalAccept = document.getElementById('churchLegalAccept');
+
+            if (!churchAgeConfirm?.checked || !churchAuthorizedConfirm?.checked || !churchLegalAccept?.checked) {
+                showMessage('registerMessage', '<i class="fas fa-exclamation-triangle"></i> Please confirm that you are 18+, authorized to register this church, and accept the required legal documents before continuing.', 'error');
+                submitRegBtn.disabled = false;
+                submitRegBtn.innerHTML = 'Submit Registration for Approval';
+                return;
+            }
 
             // NTCOG Naming Logic Standard
             let displayChurchName = churchName;
@@ -146,7 +160,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             roles: ['Admin', 'Pastor'],
                             accountState: 'active',
                             joinDate: new Date().toISOString(),
-                            bio: 'Church Admin'
+                            bio: 'Church Admin',
+                            ageConfirmed: true,
+                            authorizedRepresentative: true,
+                            legalAccepted: true,
+                            legalAcceptedAt: new Date().toISOString(),
+                            termsVersion: TERMS_VERSION,
+                            privacyPolicyVersion: PRIVACY_VERSION,
+                            acceptedLegalDocuments: ['Terms & Conditions', 'Privacy Policy', 'Admin & Staff Access Policy', 'Data Retention Schedule', 'Community Guidelines'],
+                            signupSource: 'web_church_registration'
                         }
                     }
                 });
@@ -262,6 +284,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const memberEmail = document.getElementById('memberEmail').value.trim();
             const memberPhone = document.getElementById('memberPhone').value.trim();
             const password = document.getElementById('memberPassword').value;
+            const memberAgeConfirm = document.getElementById('memberAgeConfirm');
+            const memberLegalAccept = document.getElementById('memberLegalAccept');
+            const memberLocationNotice = document.getElementById('memberLocationNotice');
+
+            if (!memberAgeConfirm?.checked || !memberLegalAccept?.checked || !memberLocationNotice?.checked) {
+                showMessage('memberMessage', '<i class="fas fa-exclamation-triangle"></i> Please confirm that you are 18+ and accept the required legal documents before creating your account.', 'error');
+                submitMemberBtn.disabled = false;
+                submitMemberBtn.innerHTML = 'Create Account';
+                return;
+            }
 
             try {
                 const { data, error } = await window.supabase.auth.signUp({
@@ -276,7 +308,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             placeName: selectedChurch.name,
                             roles: ['Member'],
                             accountState: 'active',
-                            joinDate: new Date().toISOString()
+                            joinDate: new Date().toISOString(),
+                            ageConfirmed: true,
+                            legalAccepted: true,
+                            legalAcceptedAt: new Date().toISOString(),
+                            termsVersion: TERMS_VERSION,
+                            privacyPolicyVersion: PRIVACY_VERSION,
+                            acceptedLegalDocuments: ['Terms & Conditions', 'Privacy Policy', 'Account Deletion Policy', 'Community Guidelines', 'Location Disclosure'],
+                            signupSource: 'web_member_signup'
                         }
                     }
                 });

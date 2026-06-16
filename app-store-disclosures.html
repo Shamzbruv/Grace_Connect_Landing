@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android & iOS Store Disclosure Drafts - Grace Connect</title>
+    <meta name="description" content="Draft wording and checklist for Google Play Data Safety and Apple App Privacy submissions.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-legal ">
+    <div class="bg-gradient-gold"></div>
+    <div class="bg-gradient-navy"></div>
+    
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <img src="assets/logo.png" alt="Grace Connect Logo" onerror="this.src='https://via.placeholder.com/40x40?text=GC'">
+                <span>Grace Connect</span>
+            </a>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation menu"><i class="fas fa-bars"></i></button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html#home">Home</a></li>
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="legal.html">Legal</a></li>
+                <li class="nav-actions">
+                    <a href="member-signup.html" class="nav-link-btn text-btn">Member Access</a>
+                    <a href="register-church.html" class="nav-link-btn primary-btn">Register Church</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="page-content legal-content">
+        <div class="container animate-up">
+            <div class="legal-wrapper glass-card">
+                <div class="legal-hero">
+                    <span class="legal-kicker">Grace Connect Legal Center</span>
+                    <h1>Android & iOS Store Disclosure Drafts</h1>
+                    <p class="legal-summary">Draft wording and checklist for Google Play Data Safety and Apple App Privacy submissions.</p>
+                    <p class="last-updated">Last Updated: June 16, 2026</p>
+                </div>
+                <div class="legal-text">
+<div class="legal-callout important"><h2>Submission Warning</h2><p>App store declarations must match the final compiled Android and iOS apps, their SDKs, permissions, and actual behavior at the time of submission. Review this page before every release.</p></div>
+<h2>Google Play Data Safety Draft</h2>
+<table class="legal-table"><thead><tr><th>Question Area</th><th>Recommended Draft Answer</th></tr></thead><tbody>
+<tr><td>Does the app collect user data?</td><td>Yes. The app collects account, contact, user content, device/app, location, identifiers, diagnostics, and app activity data depending on features used.</td></tr>
+<tr><td>Is data encrypted in transit?</td><td>Yes. Data should be transmitted over HTTPS/TLS through Supabase, Firebase, Google, and related service endpoints.</td></tr>
+<tr><td>Can users request deletion?</td><td>Yes. Users can request deletion in-app and through the public Delete My Account page.</td></tr>
+<tr><td>Is data shared?</td><td>Yes, with service providers such as Supabase, Firebase/Google, app stores, notification providers, external giving providers, and with the user’s church/admins where required for app functionality.</td></tr>
+<tr><td>Location</td><td>Collected for attendance, geofencing, check-in validation, duplicate prevention, late status, and attendance history. Background location may be collected only if automatic attendance is enabled and permission is granted.</td></tr>
+<tr><td>Personal info</td><td>Name, email, phone number, profile photo, church affiliation, address/parish/city if provided, roles, support contact information.</td></tr>
+<tr><td>User content</td><td>Posts, comments, prayer requests, testimonies, direct/group messages, photos, audio, videos, support attachments, counseling/care requests.</td></tr>
+<tr><td>Financial info</td><td>Grace Connect is not intended to collect card credentials. It may store giving links, receipt URLs, transaction references, amounts/categories if the finance module is enabled.</td></tr>
+<tr><td>Device or other IDs</td><td>Notification tokens, account IDs, user IDs, church IDs, device/app diagnostics, analytics identifiers where used.</td></tr>
+</tbody></table>
+<h2>Apple App Privacy Draft</h2>
+<p>Apple App Privacy details should disclose data linked to the user where applicable, including contact information, identifiers, user content, location, diagnostics, usage data, and possibly financial-related references if enabled. Tracking should be marked “No” unless Grace Connect or an SDK tracks users across apps/websites owned by other companies for advertising or data broker purposes.</p>
+<h2>iOS Purpose String Drafts</h2>
+<div class="legal-callout"><p><strong>Location When In Use:</strong> “Grace Connect uses your location to verify attendance when you check in at your church.”</p><p><strong>Always / Background Location:</strong> “Grace Connect uses background location only if you enable automatic attendance, so your church attendance can be recorded when you are near your church during a scheduled service.”</p><p><strong>Camera / Photos:</strong> “Grace Connect lets you upload profile photos, support screenshots, and church/community media when you choose.”</p><p><strong>Microphone:</strong> “Grace Connect uses the microphone only when you choose to record an audio message or media upload.”</p><p><strong>Notifications:</strong> “Grace Connect sends church announcements, messages, prayer updates, event reminders, and account notices.”</p></div>
+<h2>Android Prominent Disclosure Draft</h2>
+<p>Use the Location Disclosure page wording immediately before requesting background location permission.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer class="footer">
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <img src="assets/logo.png" alt="Grace Connect" onerror="this.style.display='none'">
+                    <span>Grace Connect</span>
+                </div>
+                <p>Grace Connect is operated by I Create Solutions & Services, owned by Shamar Baker, Bull Bay, St Andrew, Jamaica.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Platform</h4>
+                <ul>
+                    <li><a href="index.html#features">Features</a></li>
+                    <li><a href="register-church.html">Register Church</a></li>
+                    <li><a href="member-signup.html">Member Access</a></li>
+                    <li><a href="support-policy.html">Support Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="legal.html">Legal Center</a></li>
+                    <li><a href="terms.html">Terms & Conditions</a></li>
+                    <li><a href="privacy.html">Privacy Policy</a></li>
+                    <li><a href="account-deletion.html">Delete My Account</a></li>
+                    <li><a href="community-guidelines.html">Community Guidelines</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Compliance</h4>
+                <ul>
+                    <li><a href="location-disclosure.html">Location Disclosure</a></li>
+                    <li><a href="data-retention.html">Data Retention</a></li>
+                    <li><a href="app-store-disclosures.html">App Store Disclosures</a></li>
+                    <li><a href="vendors.html">Third-Party Providers</a></li>
+                    <li><a href="security-policy.html">Security Reporting</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2026 Grace Connect. All rights reserved. Operated by I Create Solutions & Services.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
