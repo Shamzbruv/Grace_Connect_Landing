@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Access - Grace Connect</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="page-form">
+    <!-- Background Decorators -->
+    <div class="bg-gradient-purple"></div>
+    <div class="bg-gradient-gold"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <img src="assets/logo.png" alt="Grace Connect Logo" onerror="this.src='https://via.placeholder.com/40x40?text=GC'">
+                <span>Grace Connect</span>
+            </a>
+            
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html#home">Home</a></li>
+                <li><a href="index.html#features">Features</a></li>
+                <li class="nav-actions">
+                    <a href="member-signup.html" class="nav-link-btn text-btn active">Member Access</a>
+                    <a href="register-church.html" class="nav-link-btn primary-btn">Register Church</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <main class="page-content">
+        <div class="container form-page-container animate-up">
+            <div class="form-wrapper glass-card">
+                <div class="form-header text-center">
+                    <h2>Join Your Church Family</h2>
+                    <p>Search for your church to join the Grace Connect platform and stay connected.</p>
+                </div>
+                
+                <div class="search-section" id="memberSearchSection">
+                    <div class="search-box-large">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="churchSearch" placeholder="Search by church name or address..." autocomplete="off">
+                    </div>
+                    
+                    <div id="searchResults" class="search-results-large"></div>
+                    
+                    <!-- Respectful Guidance Message -->
+                    <div id="searchMessage" class="message guidance-message" style="display: none;">
+                        <i class="fas fa-info-circle"></i>
+                        <p>This church is not available yet. Please speak with your pastor or church admin and ask them to register the church on Grace Connect first.</p>
+                    </div>
+                </div>
+
+                <!-- Member Signup Form (Hidden until church is selected) -->
+                <form id="memberSignupForm" class="styled-form" style="display: none;">
+                    <div class="selected-church-badge large-badge">
+                        <div>
+                            <span class="badge-label">Joining Church:</span>
+                            <span id="selectedChurchName" class="badge-value"></span>
+                        </div>
+                        <button type="button" id="changeChurchBtn" class="btn btn-outline-small">Change</button>
+                    </div>
+
+                    <div class="form-section mt-4">
+                        <h3><i class="fas fa-user"></i> Your Details</h3>
+                        <div class="input-group">
+                            <label for="memberName">Full Name</label>
+                            <input type="text" id="memberName" required placeholder="John Doe">
+                        </div>
+                        <div class="input-group">
+                            <label for="memberEmail">Email Address</label>
+                            <input type="email" id="memberEmail" required placeholder="john@example.com">
+                        </div>
+                        <div class="input-group">
+                            <label for="memberPhone">Phone Number (Optional)</label>
+                            <input type="tel" id="memberPhone" placeholder="+1 234 567 8900">
+                        </div>
+                        <div class="input-group">
+                            <label for="memberPassword">Create Password</label>
+                            <input type="password" id="memberPassword" required placeholder="Create a secure password" minlength="6">
+                        </div>
+                    </div>
+
+                    <div class="form-actions mt-4">
+                        <button type="submit" class="btn btn-primary btn-large w-full" id="submitMemberBtn">Create Account</button>
+                    </div>
+                    <div id="memberMessage" class="message"></div>
+                </form>
+                
+                <!-- Success state -->
+                <div id="memberSuccessState" class="success-state" style="display: none;">
+                    <div class="success-icon"><i class="fas fa-heart"></i></div>
+                    <h3>Welcome to Grace Connect!</h3>
+                    <p>Your account has been created successfully.</p>
+                    <p class="mt-2 text-muted">Please check your email to verify your account, then download the Grace Connect mobile app to log in and join your church feed.</p>
+                    <div class="app-links mt-4">
+                        <a href="index.html" class="btn btn-secondary w-full">Return Home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <img src="assets/logo.png" alt="Grace Connect" onerror="this.style.display='none'">
+                    <span>Grace Connect</span>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="terms.html">Terms of Use</a></li>
+                    <li><a href="privacy.html">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2026 Grace Connect. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/supabase-config.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
