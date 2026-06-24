@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    const TERMS_VERSION = 'GC-TERMS-2026-06-16';
-    const PRIVACY_VERSION = 'GC-PRIVACY-2026-06-16';
+    const LEGAL_DOCUMENT_VERSION = '2026-06-24';
 
 
     // --- Global: Mobile Menu ---
@@ -137,10 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 displayChurchName = `${churchName.replace(/new testament church of god/ig, '').replace(/ntcog/ig, '').trim()} NTCOG`;
             }
 
-            const placeId = `church_${Date.now()}`;
-
             try {
-                // Submit to Supabase
                 const { data, error } = await supabase.auth.signUp({
                     email: adminEmail,
                     password: password,
@@ -149,31 +145,50 @@ document.addEventListener('DOMContentLoaded', () => {
                             full_name: adminName,
                             phone: adminPhone,
                             phoneNumber: adminPhone,
-                            placeId: placeId,
-                            placeName: displayChurchName,
-                            address: address,
-                            denomination: denomination,
-                            location_name: churchName,
-                            pastor_or_admin_name: adminName,
-                            pastor_or_admin_email: adminEmail,
-                            pastor_or_admin_phone: adminPhone,
-                            roles: ['Admin', 'Pastor'],
-                            accountState: 'active',
-                            joinDate: new Date().toISOString(),
-                            bio: 'Church Admin',
-                            ageConfirmed: true,
+                            churchRegistrationRequest: true,
+                            churchNameSubmitted: displayChurchName,
+                            locationName: churchName,
+                            churchAddress: address,
+                            denomination,
+                            pastorName: adminName,
+                            pastorEmail: adminEmail,
+                            pastorPhone: adminPhone,
                             authorizedRepresentative: true,
-                            legalAccepted: true,
+                            acceptedPolicyKeys: [
+                                'terms',
+                                'privacy',
+                                'community_guidelines',
+                                'age_policy',
+                                'church_admin_access',
+                                'church_registration_authority',
+                                'data_retention'
+                            ],
+                            legalDocumentVersion: LEGAL_DOCUMENT_VERSION,
                             legalAcceptedAt: new Date().toISOString(),
-                            termsVersion: TERMS_VERSION,
-                            privacyPolicyVersion: PRIVACY_VERSION,
-                            acceptedLegalDocuments: ['Terms & Conditions', 'Privacy Policy', 'Admin & Staff Access Policy', 'Data Retention Schedule', 'Community Guidelines'],
+                            legalAcceptanceSource: 'web_church_registration',
+                            isAdultConfirmed: true,
                             signupSource: 'web_church_registration'
                         }
                     }
                 });
 
                 if (error) throw error;
+
+                if (data?.session) {
+                    const { error: requestError } = await window.supabase.rpc('submit_church_registration', {
+                        church_name: displayChurchName,
+                        location: churchName,
+                        church_address: address,
+                        church_parish: null,
+                        denomination: null,
+                        custom_denomination: denomination,
+                        pastor_full_name: adminName,
+                        pastor_contact_email: adminEmail,
+                        pastor_contact_phone: adminPhone,
+                        legal_acceptance: null
+                    });
+                    if (requestError) throw requestError;
+                }
 
                 // Show Success State
                 churchRegisterForm.style.display = 'none';
@@ -221,13 +236,9 @@ document.addEventListener('DOMContentLoaded', () => {
             searchMessage.style.display = 'none';
 
             try {
-                // Only show approved or active churches
-                const { data: churches, error } = await window.supabase
-                    .from('churches')
-                    .select('id, name, address, placeId')
-                    .in('approval_status', ['approved', 'active'])
-                    .ilike('name', `%${query}%`)
-                    .limit(5);
+                const { data: churches, error } = await window.supabase.rpc('get_public_church_directory', {
+                    search_query: query
+                });
 
                 if (error) throw error;
 
@@ -304,23 +315,33 @@ document.addEventListener('DOMContentLoaded', () => {
                             full_name: memberName,
                             phone: memberPhone,
                             phoneNumber: memberPhone,
-                            placeId: selectedChurch.placeId || selectedChurch.id,
-                            placeName: selectedChurch.name,
-                            roles: ['Member'],
-                            accountState: 'active',
-                            joinDate: new Date().toISOString(),
-                            ageConfirmed: true,
-                            legalAccepted: true,
+                            requestedChurchId: selectedChurch.placeId || selectedChurch.id,
+                            requestedChurchName: selectedChurch.name,
+                            acceptedPolicyKeys: [
+                                'terms',
+                                'privacy',
+                                'community_guidelines',
+                                'age_policy',
+                                'location_disclosure'
+                            ],
+                            legalDocumentVersion: LEGAL_DOCUMENT_VERSION,
                             legalAcceptedAt: new Date().toISOString(),
-                            termsVersion: TERMS_VERSION,
-                            privacyPolicyVersion: PRIVACY_VERSION,
-                            acceptedLegalDocuments: ['Terms & Conditions', 'Privacy Policy', 'Account Deletion Policy', 'Community Guidelines', 'Location Disclosure'],
+                            legalAcceptanceSource: 'web_member_signup',
+                            isAdultConfirmed: true,
                             signupSource: 'web_member_signup'
                         }
                     }
                 });
 
                 if (error) throw error;
+
+                if (data?.session) {
+                    const { error: requestError } = await window.supabase.rpc('request_church_membership', {
+                        target_church_id: selectedChurch.placeId || selectedChurch.id,
+                        request_note: 'Requested from landing page signup.'
+                    });
+                    if (requestError) throw requestError;
+                }
 
                 // Show Success State
                 memberSignupForm.style.display = 'none';
