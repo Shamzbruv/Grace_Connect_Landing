@@ -43,19 +43,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     completeRegistrationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
                     try {
                         let legalAcceptanceId = null;
-                        const requiredPolicies = ['terms', 'privacy', 'community_guidelines', 'age_policy', 'church_admin_access', 'church_registration_authority', 'data_retention'];
                         
-                        for (const policyKey of requiredPolicies) {
+                        // 1. Fetch active policies required for church_application
+                        const { data: policies, error: fetchError } = await client.rpc('get_active_policy_documents', {
+                            p_flow_type: 'church_application'
+                        });
+                        if (fetchError) throw fetchError;
+                        
+                        // 2. Accept each policy
+                        for (const policy of policies) {
                             const { data: acceptanceId, error: acceptanceError } = await client.rpc('accept_policy_document', {
-                                target_document_key: policyKey,
-                                target_document_version: LEGAL_DOCUMENT_VERSION,
+                                target_document_key: policy.document_key,
+                                target_document_version: policy.document_version,
                                 acceptance_source: 'web_church_registration',
                                 metadata: { isAdultConfirmed: true, authorizedRepresentative: true }
                             });
                             if (acceptanceError) throw acceptanceError;
-                            if (!legalAcceptanceId) legalAcceptanceId = acceptanceId;
+                            
+                            // Capture the specific authority acceptance ID
+                            if (policy.document_key === 'church_registration_authority') {
+                                legalAcceptanceId = acceptanceId;
+                            }
                         }
 
+                        // 3. Submit registration
                         const { error: requestError } = await client.rpc('submit_church_registration', {
                             ...pendingChurch,
                             legal_acceptance: legalAcceptanceId
@@ -108,18 +119,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     completeRegistrationBtn.disabled = true;
                     completeRegistrationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
                     try {
-                        const requiredPolicies = ['terms', 'privacy', 'community_guidelines', 'age_policy', 'location_disclosure'];
+                        // 1. Fetch active policies required for member_signup
+                        const { data: policies, error: fetchError } = await client.rpc('get_active_policy_documents', {
+                            p_flow_type: 'member_signup'
+                        });
+                        if (fetchError) throw fetchError;
                         
-                        for (const policyKey of requiredPolicies) {
+                        // 2. Accept each policy
+                        for (const policy of policies) {
                             const { error: acceptanceError } = await client.rpc('accept_policy_document', {
-                                target_document_key: policyKey,
-                                target_document_version: LEGAL_DOCUMENT_VERSION,
+                                target_document_key: policy.document_key,
+                                target_document_version: policy.document_version,
                                 acceptance_source: 'web_member_signup',
                                 metadata: { isAdultConfirmed: true, locationNoticeAccepted: true }
                             });
                             if (acceptanceError) throw acceptanceError;
                         }
 
+                        // 3. Request membership
                         const { error: requestError } = await client.rpc('request_church_membership', {
                             target_church_id: pendingMember.target_church_id,
                             request_note: 'Requested from landing page signup.'
@@ -141,8 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     }
-
-    const LEGAL_DOCUMENT_VERSION = '2026-06-24';
 
 
 
