@@ -62,8 +62,14 @@
                         </div>
                         <div class="input-group">
                             <label for="denomination">Denomination</label>
-                            <input type="text" id="denomination" required placeholder="e.g. New Testament Church of God">
-                            <small class="helper-text">NTCOG churches will automatically be formatted to our naming standard.</small>
+                            <select id="denomination" required>
+                                <option value="" disabled selected>Loading denominations...</option>
+                            </select>
+                            <small class="helper-text" id="denominationHelp">Select your church's denomination.</small>
+                        </div>
+                        <div class="input-group" id="customDenominationGroup" style="display: none;">
+                            <label for="customDenomination">Custom Denomination Name</label>
+                            <input type="text" id="customDenomination" placeholder="Enter your denomination name">
                         </div>
                         <div class="input-group">
                             <label for="churchAddress">Full Address</label>
@@ -118,6 +124,17 @@
                     </div>
                     <div id="registerMessage" class="message"></div>
                 </form>
+
+                <!-- Verify Email State -->
+                <div id="verifyEmailState" class="success-state" style="display: none;">
+                    <div class="success-icon"><i class="fas fa-envelope"></i></div>
+                    <h3>Verify Your Email</h3>
+                    <p>Your account was created, but we need to verify your email address before your church registration can be fully processed.</p>
+                    <p>Please check your inbox (and spam folder) for a verification link. After verifying, log in to complete your submission.</p>
+                    <div class="mt-4">
+                        <a href="index.html" class="btn btn-secondary w-full">Return Home</a>
+                    </div>
+                </div>
 
                 <!-- Success State -->
                 <div id="registerSuccessState" class="success-state" style="display: none;">

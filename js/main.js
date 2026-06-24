@@ -103,6 +103,49 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Page: Church Registration ---
     const churchRegisterForm = document.getElementById('churchRegisterForm');
     const submitRegBtn = document.getElementById('submitRegistrationBtn');
+    const denominationSelect = document.getElementById('denomination');
+    const customDenominationGroup = document.getElementById('customDenominationGroup');
+    const customDenomination = document.getElementById('customDenomination');
+
+    if (denominationSelect) {
+        const loadDenominations = async () => {
+            try {
+                const { data, error } = await window.supabase.rpc('get_active_denominations');
+                if (error) throw error;
+                
+                denominationSelect.innerHTML = '<option value="" disabled selected>Select your denomination</option>';
+                data.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.display_name;
+                    opt.dataset.code = d.code;
+                    denominationSelect.appendChild(opt);
+                });
+                
+                // Add Other option
+                const otherOpt = document.createElement('option');
+                otherOpt.value = 'other';
+                otherOpt.textContent = 'Other / Unlisted';
+                denominationSelect.appendChild(otherOpt);
+            } catch (err) {
+                console.error("Failed to load denominations", err);
+                denominationSelect.innerHTML = '<option value="" disabled selected>Error loading denominations</option>';
+            }
+        };
+        
+        loadDenominations();
+
+        denominationSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'other') {
+                customDenominationGroup.style.display = 'block';
+                customDenomination.required = true;
+            } else {
+                customDenominationGroup.style.display = 'none';
+                customDenomination.required = false;
+                customDenomination.value = '';
+            }
+        });
+    }
 
     if (churchRegisterForm && submitRegBtn) {
         churchRegisterForm.addEventListener('submit', async (e) => {
@@ -114,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const churchName = document.getElementById('churchName').value.trim();
             const denomination = document.getElementById('denomination').value.trim();
+            const customDenomVal = document.getElementById('customDenomination')?.value.trim() || null;
             const address = document.getElementById('churchAddress').value.trim();
             const adminName = document.getElementById('adminName').value.trim();
             const adminEmail = document.getElementById('adminEmail').value.trim();
@@ -132,7 +176,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // NTCOG Naming Logic Standard
             let displayChurchName = churchName;
-            if (denomination.toLowerCase().includes('new testament church of god') || denomination.toLowerCase().includes('ntcog')) {
+            const selectedOption = denominationSelect ? denominationSelect.options[denominationSelect.selectedIndex] : null;
+            const denomCode = selectedOption ? selectedOption.dataset.code : '';
+            if (denomCode === 'ntcog' || (customDenomVal && (customDenomVal.toLowerCase().includes('new testament church of god') || customDenomVal.toLowerCase().includes('ntcog')))) {
                 displayChurchName = `${churchName.replace(/new testament church of god/ig, '').replace(/ntcog/ig, '').trim()} NTCOG`;
             }
 
@@ -142,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     location_name: churchName,
                     address: address,
                     parish: null,
-                    denomination_id: denomination
+                    denomination_id: denomination === 'other' ? null : denomination
                 });
 
                 if (conflictError) throw conflictError;
@@ -225,8 +271,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         location: churchName,
                         church_address: address,
                         church_parish: null,
-                        denomination: null,
-                        custom_denomination: denomination,
+                        denomination: denomination === 'other' ? null : denomination,
+                        custom_denomination: customDenomVal,
                         pastor_full_name: adminName,
                         pastor_contact_email: adminEmail,
                         pastor_contact_phone: adminPhone,
@@ -238,9 +284,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Show Success State
                 churchRegisterForm.style.display = 'none';
                 document.querySelector('.form-header').style.display = 'none';
-                document.getElementById('registerSuccessState').style.display = 'block';
-                
-                await window.supabase.auth.signOut();
+                if (!data?.session) {
+                    document.getElementById('verifyEmailState').style.display = 'block';
+                } else {
+                    document.getElementById('registerSuccessState').style.display = 'block';
+                    await window.supabase.auth.signOut();
+                }
                 
             } catch (error) {
                 showMessage('registerMessage', `<i class="fas fa-exclamation-triangle"></i> ${error.message || 'An error occurred during registration.'}`, 'error');
@@ -297,10 +346,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 churches.forEach(church => {
                     const item = document.createElement('div');
                     item.className = 'search-item';
-                    item.innerHTML = `
-                        <strong>${church.name}</strong>
-                        <span><i class="fas fa-map-marker-alt" style="color: #D4AF37; margin-right: 4px;"></i> ${church.address || 'Address not provided'}</span>
-                    `;
+                    const strong = document.createElement('strong');
+                    strong.textContent = church.name;
+                    const span = document.createElement('span');
+                    span.innerHTML = '<i class="fas fa-map-marker-alt" style="color: #D4AF37; margin-right: 4px;"></i> ';
+                    span.appendChild(document.createTextNode(church.address || 'Address not provided'));
+                    item.appendChild(strong);
+                    item.appendChild(span);
                     item.addEventListener('click', () => selectChurch(church));
                     searchResults.appendChild(item);
                 });
@@ -412,9 +464,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Show Success State
                 memberSignupForm.style.display = 'none';
                 document.querySelector('.form-header').style.display = 'none';
-                document.getElementById('memberSuccessState').style.display = 'block';
-                
-                await window.supabase.auth.signOut();
+                if (!data?.session) {
+                    document.getElementById('verifyEmailState').style.display = 'block';
+                } else {
+                    document.getElementById('memberSuccessState').style.display = 'block';
+                    await window.supabase.auth.signOut();
+                }
                 
             } catch (error) {
                 showMessage('memberMessage', `<i class="fas fa-exclamation-triangle"></i> ${error.message || 'An error occurred during signup.'}`, 'error');
