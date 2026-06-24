@@ -15,8 +15,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // Church Registration Completion
         const pendingChurchStr = localStorage.getItem('pendingChurchRegistration');
         if (pendingChurchStr && document.getElementById('completionState') && document.getElementById('churchRegisterForm')) {
-            
-            if (pendingChurch.owner_email !== session.user.email || Date.now() > pendingChurch.expires_at) {
+            let pendingChurch;
+            try {
+                pendingChurch = JSON.parse(pendingChurchStr);
+            } catch {
+                localStorage.removeItem('pendingChurchRegistration');
+                showMessage('registerMessage', '<i class="fas fa-exclamation-triangle"></i> We could not restore this application. Please start again.', 'error');
+                return;
+            }
+
+            if (
+                pendingChurch.owner_email?.trim().toLowerCase() !== session.user.email?.trim().toLowerCase() ||
+                Date.now() > pendingChurch.expires_at
+            ) {
+                localStorage.removeItem('pendingChurchRegistration');
                 showMessage('registerMessage', '<i class="fas fa-exclamation-triangle"></i> We could not safely restore this application on this device. Please sign in and start the completion step again.', 'error');
                 return;
             }
@@ -30,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     completeRegistrationBtn.disabled = true;
                     completeRegistrationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
                     try {
-                        const pendingChurch = JSON.parse(pendingChurchStr);
                         let legalAcceptanceId = null;
                         const requiredPolicies = ['terms', 'privacy', 'community_guidelines', 'age_policy', 'church_admin_access', 'church_registration_authority', 'data_retention'];
                         
@@ -67,8 +78,21 @@ document.addEventListener('DOMContentLoaded', () => {
         // Member Signup Completion
         const pendingMemberStr = localStorage.getItem('pendingMemberSignup');
         if (pendingMemberStr && document.getElementById('completionState') && document.getElementById('memberSearchSection')) {
-            
-            if (pendingMember.owner_email !== session.user.email || Date.now() > pendingMember.expires_at) {
+            let pendingMember;
+            try {
+                pendingMember = JSON.parse(pendingMemberStr);
+            } catch {
+                localStorage.removeItem('pendingMemberSignup');
+                showMessage('searchMessage', '<i class="fas fa-exclamation-triangle"></i> We could not restore this application. Please start again.', 'error');
+                document.getElementById('searchMessage').style.display = 'block';
+                return;
+            }
+
+            if (
+                pendingMember.owner_email?.trim().toLowerCase() !== session.user.email?.trim().toLowerCase() ||
+                Date.now() > pendingMember.expires_at
+            ) {
+                localStorage.removeItem('pendingMemberSignup');
                 showMessage('searchMessage', '<i class="fas fa-exclamation-triangle"></i> We could not safely restore this application on this device. Please sign in and start the completion step again.', 'error');
                 document.getElementById('searchMessage').style.display = 'block';
                 return;
@@ -84,7 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     completeRegistrationBtn.disabled = true;
                     completeRegistrationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
                     try {
-                        const pendingMember = JSON.parse(pendingMemberStr);
                         const requiredPolicies = ['terms', 'privacy', 'community_guidelines', 'age_policy', 'location_disclosure'];
                         
                         for (const policyKey of requiredPolicies) {
