@@ -229,8 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${statusBadge(member.approvalStatus)}<small>${formatDate(member.joinDate)}</small></td>
                 <td>
                     <div class="developer-action-row">
-                        <button class="developer-icon-btn" title="Approve" data-action="approve-member" data-id="${escapeHtml(member.id)}"><i class="fas fa-check"></i></button>
-                        <button class="developer-icon-btn danger" title="Reject" data-action="reject-member" data-id="${escapeHtml(member.id)}"><i class="fas fa-xmark"></i></button>
+                        <button class="developer-icon-btn" title="Emergency Approve" data-action="approve-member" data-id="${escapeHtml(member.id)}"><i class="fas fa-check"></i></button>
                     </div>
                 </td>
             </tr>
@@ -337,14 +336,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 await loadChurches();
             }
             if (action === 'approve-member') {
-                await rpc('developer_approve_member_request', { p_user_id: id });
-                showMessage('developerPortalMessage', 'Member request approved.', 'success');
-                await loadMemberRequests();
-            }
-            if (action === 'reject-member') {
-                const reason = window.prompt('Reason for rejecting this member request?') || '';
-                await rpc('developer_reject_member_request', { p_user_id: id, p_reason: reason });
-                showMessage('developerPortalMessage', 'Member request rejected.', 'success');
+                const reason = window.prompt('WARNING: This is an emergency override. Enter the reason for approving this member directly:') || '';
+                if (!reason) throw new Error('Emergency approval requires a reason.');
+                await rpc('developer_approve_member_request', { p_user_id: id, p_reason: reason, p_emergency_override: true });
+                showMessage('developerPortalMessage', 'Member request approved (Emergency Override).', 'success');
                 await loadMemberRequests();
             }
             if (action === 'remove-developer') {

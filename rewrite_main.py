@@ -1,7 +1,11 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const client = window.gcSupabase;
+import re
 
+file_name = 'js/main.js'
+with open(file_name, 'r') as f:
+    content = f.read()
 
+# 1. Inject DOMContentLoaded Session Check and Completion logic
+session_logic = """
     const completeRegistrationBtn = document.getElementById('completeRegistrationBtn');
     
     // Check session on load to handle returning users from email verification
@@ -101,151 +105,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const LEGAL_DOCUMENT_VERSION = '2026-06-24';
+"""
+content = content.replace("    const LEGAL_DOCUMENT_VERSION = '2026-06-24';", session_logic)
 
+# 2. Rewrite Church Registration Submit
+old_church_submit_start = "if (churchRegisterForm && submitRegBtn) {\n        churchRegisterForm.addEventListener('submit', async (e) => {"
+old_church_submit_end = "submitRegBtn.innerHTML = 'Submit Registration for Approval';\n            }\n        });\n    }"
 
-
-    // --- Global: Mobile Menu ---
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const navLinks = document.getElementById('navLinks');
-    
-    if (mobileMenuBtn && navLinks) {
-        mobileMenuBtn.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            const icon = mobileMenuBtn.querySelector('i');
-            if (navLinks.classList.contains('active')) {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-times');
-            } else {
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
-            }
-        });
-    }
-
-    // --- Global: Navbar Scroll Effect ---
-    const navbar = document.getElementById('navbar');
-    if (navbar) {
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 20) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        });
-    }
-
-    // --- Global: Scroll Animations (Intersection Observer) ---
-    const animatedElements = document.querySelectorAll('.animate-up');
-    if (animatedElements.length > 0) {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        });
-
-        animatedElements.forEach(el => observer.observe(el));
-    }
-
-    // --- Homepage: Tabs Logic ---
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabPanes = document.querySelectorAll('.tab-pane');
-    
-    if (tabBtns.length > 0 && tabPanes.length > 0) {
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const targetId = btn.getAttribute('data-target');
-                
-                // Remove active classes
-                tabBtns.forEach(b => b.classList.remove('active'));
-                tabPanes.forEach(p => p.classList.remove('active'));
-                
-                // Add active to clicked
-                btn.classList.add('active');
-                document.getElementById(targetId).classList.add('active');
-            });
-        });
-    }
-
-    // --- Homepage: FAQ Accordion ---
-    const faqQuestions = document.querySelectorAll('.faq-question');
-    if (faqQuestions.length > 0) {
-        faqQuestions.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const item = btn.parentElement;
-                
-                // Close others
-                document.querySelectorAll('.faq-item').forEach(otherItem => {
-                    if (otherItem !== item) {
-                        otherItem.classList.remove('active');
-                    }
-                });
-                
-                item.classList.toggle('active');
-            });
-        });
-    }
-
-    // --- Utilities ---
-    const showMessage = (elementId, message, type) => {
-        const el = document.getElementById(elementId);
-        if (el) {
-            el.innerHTML = message; // Using innerHTML if we pass icons
-            el.className = `message ${type}`;
-            el.style.display = 'block';
-        }
-    };
-
-    // --- Page: Church Registration ---
-    const churchRegisterForm = document.getElementById('churchRegisterForm');
-    const submitRegBtn = document.getElementById('submitRegistrationBtn');
-    const denominationSelect = document.getElementById('denomination');
-    const customDenominationGroup = document.getElementById('customDenominationGroup');
-    const customDenomination = document.getElementById('customDenomination');
-
-    if (denominationSelect) {
-        const loadDenominations = async () => {
-            try {
-                const { data, error } = await client.rpc('get_active_denominations');
-                if (error) throw error;
-                
-                denominationSelect.innerHTML = '<option value="" disabled selected>Select your denomination</option>';
-                data.forEach(d => {
-                    const opt = document.createElement('option');
-                    opt.value = d.id;
-                    opt.textContent = d.display_name;
-                    opt.dataset.code = d.code;
-                    denominationSelect.appendChild(opt);
-                });
-                
-
-            } catch (err) {
-                console.error("Failed to load denominations", err);
-                denominationSelect.innerHTML = '<option value="" disabled selected>Error loading denominations</option>';
-            }
-        };
-        
-        loadDenominations();
-
-        denominationSelect.addEventListener('change', (e) => {
-            const selectedOpt = denominationSelect.options[denominationSelect.selectedIndex];
-            if (selectedOpt && selectedOpt.dataset.code === 'other') {
-                customDenominationGroup.style.display = 'block';
-                customDenomination.required = true;
-            } else {
-                customDenominationGroup.style.display = 'none';
-                customDenomination.required = false;
-                customDenomination.value = '';
-            }
-        });
-    }
-
-    if (churchRegisterForm && submitRegBtn) {
+new_church_submit = """if (churchRegisterForm && submitRegBtn) {
         churchRegisterForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -293,9 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (conflictError) throw conflictError;
 
                 if (conflictResult?.has_conflict) {
-                    const shouldContinue = window.confirm(`${conflictResult.safe_message}
-
-You can continue, but our developer review team may ask for more verification. Continue with this registration application?`);
+                    const shouldContinue = window.confirm(`${conflictResult.safe_message}\\n\\nYou can continue, but our developer review team may ask for more verification. Continue with this registration application?`);
                     if (!shouldContinue) {
                         showMessage('registerMessage', '<i class="fas fa-info-circle"></i> Registration paused. Please search the church directory or contact Grace Connect support if this church is already registered.', 'error');
                         submitRegBtn.disabled = false;
@@ -348,89 +213,15 @@ You can continue, but our developer review team may ask for more verification. C
                 submitRegBtn.innerHTML = 'Submit Registration for Approval';
             }
         });
-    }
+    }"""
+pattern_church = re.compile(re.escape(old_church_submit_start) + r".*?" + re.escape("submitRegBtn.innerHTML = 'Submit Registration for Approval';\n            }\n        });\n    }"), re.DOTALL)
+content = pattern_church.sub(new_church_submit, content)
 
-    // --- Page: Member Sign Up ---
-    const searchInput = document.getElementById('churchSearch');
-    const searchResults = document.getElementById('searchResults');
-    const searchMessage = document.getElementById('searchMessage');
-    const memberSignupForm = document.getElementById('memberSignupForm');
-    const changeChurchBtn = document.getElementById('changeChurchBtn');
-    const selectedChurchNameEl = document.getElementById('selectedChurchName');
-    const submitMemberBtn = document.getElementById('submitMemberBtn');
-    
-    if (searchInput && searchResults && memberSignupForm) {
-        let debounceTimer;
-        let selectedChurch = null;
+# 3. Rewrite Member Signup Submit
+old_member_submit_start = "memberSignupForm.addEventListener('submit', async (e) => {"
+old_member_submit_end = "submitMemberBtn.innerHTML = 'Create Account';\n            }\n        });\n    }"
 
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(debounceTimer);
-            const query = e.target.value.trim();
-            
-            if (query.length < 2) {
-                searchResults.innerHTML = '';
-                searchMessage.style.display = 'none';
-                return;
-            }
-
-            debounceTimer = setTimeout(() => performSearch(query), 400);
-        });
-
-        async function performSearch(query) {
-            searchResults.innerHTML = '<div class="search-item"><span><i class="fas fa-spinner fa-spin"></i> Searching churches...</span></div>';
-            searchMessage.style.display = 'none';
-
-            try {
-                const { data: churches, error } = await client.rpc('get_public_church_directory', {
-                    search_query: query
-                });
-
-                if (error) throw error;
-
-                searchResults.innerHTML = '';
-
-                if (churches.length === 0) {
-                    searchMessage.style.display = 'flex';
-                    return;
-                }
-
-                churches.forEach(church => {
-                    const item = document.createElement('div');
-                    item.className = 'search-item';
-                    const strong = document.createElement('strong');
-                    strong.textContent = church.name;
-                    const span = document.createElement('span');
-                    span.innerHTML = '<i class="fas fa-map-marker-alt" style="color: #D4AF37; margin-right: 4px;"></i> ';
-                    span.appendChild(document.createTextNode(church.address || 'Address not provided'));
-                    item.appendChild(strong);
-                    item.appendChild(span);
-                    item.addEventListener('click', () => selectChurch(church));
-                    searchResults.appendChild(item);
-                });
-            } catch (error) {
-                searchResults.innerHTML = '<div class="search-item" style="color: #991b1b;"><i class="fas fa-exclamation-triangle"></i> Error fetching churches. Please try again.</div>';
-                console.error('Search error:', error);
-            }
-        }
-
-        function selectChurch(church) {
-            selectedChurch = church;
-            searchResults.innerHTML = '';
-            searchInput.value = '';
-            document.getElementById('memberSearchSection').style.display = 'none';
-            
-            selectedChurchNameEl.textContent = church.name;
-            memberSignupForm.style.display = 'block';
-        }
-
-        changeChurchBtn.addEventListener('click', () => {
-            selectedChurch = null;
-            memberSignupForm.style.display = 'none';
-            document.getElementById('memberSearchSection').style.display = 'block';
-            searchInput.focus();
-        });
-
-        memberSignupForm.addEventListener('submit', async (e) => {
+new_member_submit = """memberSignupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             if (!selectedChurch) return;
@@ -489,5 +280,9 @@ You can continue, but our developer review team may ask for more verification. C
                 submitMemberBtn.innerHTML = 'Create Account';
             }
         });
-    }
-});
+    }"""
+pattern_member = re.compile(re.escape(old_member_submit_start) + r".*?" + re.escape("submitMemberBtn.innerHTML = 'Create Account';\n            }\n        });\n    }"), re.DOTALL)
+content = pattern_member.sub(new_member_submit, content)
+
+with open(file_name, "w") as f:
+    f.write(content)

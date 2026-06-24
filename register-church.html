@@ -71,6 +71,27 @@
                             <label for="customDenomination">Custom Denomination Name</label>
                             <input type="text" id="customDenomination" placeholder="Enter your denomination name">
                         </div>
+                        
+                        <div class="input-group">
+                            <label for="churchParish">Parish</label>
+                            <select id="churchParish" required>
+                                <option value="" disabled selected>Select a Parish</option>
+                                <option value="Kingston">Kingston</option>
+                                <option value="St. Andrew">St. Andrew</option>
+                                <option value="St. Catherine">St. Catherine</option>
+                                <option value="Clarendon">Clarendon</option>
+                                <option value="Manchester">Manchester</option>
+                                <option value="St. Elizabeth">St. Elizabeth</option>
+                                <option value="Westmoreland">Westmoreland</option>
+                                <option value="Hanover">Hanover</option>
+                                <option value="St. James">St. James</option>
+                                <option value="Trelawny">Trelawny</option>
+                                <option value="St. Ann">St. Ann</option>
+                                <option value="St. Mary">St. Mary</option>
+                                <option value="Portland">Portland</option>
+                                <option value="St. Thomas">St. Thomas</option>
+                            </select>
+                        </div>
                         <div class="input-group">
                             <label for="churchAddress">Full Address</label>
                             <input type="text" id="churchAddress" required placeholder="e.g. 123 Faith Street, Kingston">
@@ -124,6 +145,18 @@
                     </div>
                     <div id="registerMessage" class="message"></div>
                 </form>
+
+                
+                <!-- Completion State -->
+                <div id="completionState" class="success-state" style="display: none;">
+                    <div class="success-icon" style="background: var(--primary-light); color: var(--primary-color);"><i class="fas fa-clipboard-check"></i></div>
+                    <h3>Complete Registration</h3>
+                    <p>Welcome back! Your email has been verified. Please click below to finalize and submit your church registration.</p>
+                    <div class="mt-4">
+                        <button id="completeRegistrationBtn" class="btn btn-primary w-full">Submit Church Application</button>
+                    </div>
+                    <div id="completionMessage" class="message"></div>
+                </div>
 
                 <!-- Verify Email State -->
                 <div id="verifyEmailState" class="success-state" style="display: none;">
