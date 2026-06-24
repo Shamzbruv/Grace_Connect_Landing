@@ -125,20 +125,10 @@
                     </div>
 
                     <div class="form-section legal-consent-section">
-    <h3><i class="fas fa-scale-balanced"></i> Legal Acceptance & Authority</h3>
-    <label class="checkbox-consent">
-        <input type="checkbox" id="churchAgeConfirm" required>
-        <span>I confirm that I am 18 years of age or older.</span>
-    </label>
-    <label class="checkbox-consent">
-        <input type="checkbox" id="churchAuthorizedConfirm" required>
-        <span>I confirm that I am authorized to register this church or ministry space, provide church information, create the initial administrator account, and accept Grace Connect’s legal documents on behalf of the church or organization I represent.</span>
-    </label>
-    <label class="checkbox-consent">
-        <input type="checkbox" id="churchLegalAccept" required>
-        <span>I have read and agree to the <a href="terms.html" target="_blank" rel="noopener">Terms & Conditions</a>, <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>, <a href="admin-access-policy.html" target="_blank" rel="noopener">Admin & Staff Access Policy</a>, <a href="data-retention.html" target="_blank" rel="noopener">Data Retention Schedule</a>, and <a href="community-guidelines.html" target="_blank" rel="noopener">Community Guidelines</a>.</span>
-    </label>
-</div>
+                        <h3><i class="fas fa-scale-balanced"></i> Legal Acceptance & Authority</h3>
+                        <div id="dynamicPoliciesContainer"></div>
+                        <!-- Policies will be injected here dynamically by main.js -->
+                    </div>
 
                     <div class="form-actions mt-4">
                         <button type="submit" class="btn btn-primary btn-large w-full" id="submitRegistrationBtn">Submit Registration for Approval</button>
@@ -233,7 +223,7 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="js/supabase-config.js?v=20260624-7"></script>
-    <script src="js/main.js?v=20260624-7"></script>
+    <script src="js/supabase-config.js?v=20260624-8"></script>
+    <script src="js/main.js?v=20260624-8"></script>
 </body>
 </html>

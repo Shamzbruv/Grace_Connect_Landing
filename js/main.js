@@ -258,12 +258,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const loadDynamicPolicies = async (flowType, containerId) => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        try {
+            const { data, error } = await client.rpc('get_active_policy_documents', { p_flow_type: flowType });
+            if (error) throw error;
+            
+            container.innerHTML = '';
+            data.forEach(policy => {
+                const label = document.createElement('label');
+                label.className = 'checkbox-consent';
+                label.innerHTML = `
+                    <input type="checkbox" required data-policy-key="${policy.document_key}" data-policy-version="${policy.document_version}">
+                    <span>I have read and agree to the <a href="${policy.content_url}" target="_blank" rel="noopener">${policy.title}</a>.</span>
+                `;
+                container.appendChild(label);
+            });
+        } catch (err) {
+            console.error('Failed to load dynamic policies:', err);
+            container.innerHTML = '<div class="message error" style="display:block;">Failed to load required policies. Please refresh the page.</div>';
+        }
+    };
+
     // --- Page: Church Registration ---
     const churchRegisterForm = document.getElementById('churchRegisterForm');
     const submitRegBtn = document.getElementById('submitRegistrationBtn');
     const denominationSelect = document.getElementById('denomination');
     const customDenominationGroup = document.getElementById('customDenominationGroup');
     const customDenomination = document.getElementById('customDenomination');
+
+    if (churchRegisterForm) {
+        loadDynamicPolicies('church_application', 'dynamicPoliciesContainer');
+    }
 
     if (denominationSelect) {
         const loadDenominations = async () => {
@@ -319,16 +346,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const adminEmail = document.getElementById('adminEmail').value.trim();
             const adminPhone = document.getElementById('adminPhone').value.trim();
             const password = document.getElementById('adminPassword').value;
-            const churchAgeConfirm = document.getElementById('churchAgeConfirm');
-            const churchAuthorizedConfirm = document.getElementById('churchAuthorizedConfirm');
-            const churchLegalAccept = document.getElementById('churchLegalAccept');
-
-            if (!churchAgeConfirm?.checked || !churchAuthorizedConfirm?.checked || !churchLegalAccept?.checked) {
-                showMessage('registerMessage', '<i class="fas fa-exclamation-triangle"></i> Please confirm that you are 18+, authorized to register this church, and accept the required legal documents before continuing.', 'error');
-                submitRegBtn.disabled = false;
-                submitRegBtn.innerHTML = 'Submit Registration for Approval';
-                return;
-            }
 
             // NTCOG Naming Logic Standard
             let displayChurchName = churchName;
@@ -421,6 +438,10 @@ You can continue, but our developer review team may ask for more verification. C
     const selectedChurchNameEl = document.getElementById('selectedChurchName');
     const submitMemberBtn = document.getElementById('submitMemberBtn');
     
+    if (memberSignupForm) {
+        loadDynamicPolicies('member_signup', 'dynamicPoliciesContainer');
+    }
+    
     if (searchInput && searchResults && memberSignupForm) {
         let debounceTimer;
         let selectedChurch = null;
@@ -505,16 +526,6 @@ You can continue, but our developer review team may ask for more verification. C
             const memberEmail = document.getElementById('memberEmail').value.trim();
             const memberPhone = document.getElementById('memberPhone').value.trim();
             const password = document.getElementById('memberPassword').value;
-            const memberAgeConfirm = document.getElementById('memberAgeConfirm');
-            const memberLegalAccept = document.getElementById('memberLegalAccept');
-            const memberLocationNotice = document.getElementById('memberLocationNotice');
-
-            if (!memberAgeConfirm?.checked || !memberLegalAccept?.checked || !memberLocationNotice?.checked) {
-                showMessage('memberMessage', '<i class="fas fa-exclamation-triangle"></i> Please confirm that you are 18+ and accept the required legal documents before creating your account.', 'error');
-                submitMemberBtn.disabled = false;
-                submitMemberBtn.innerHTML = 'Create Account';
-                return;
-            }
 
             try {
                 // Save pending request
