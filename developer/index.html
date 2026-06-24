@@ -144,7 +144,23 @@
         </section>
     </main>
 
-    <script src="../js/supabase-config.js?v=20260624-4"></script>
-    <script src="../js/developer-portal.js?v=20260624-4"></script>
+    <!-- Church Detail Modal -->
+    <div class="developer-modal" id="churchDetailModal" style="display: none;">
+        <div class="developer-modal-content">
+            <header class="developer-modal-header">
+                <h2 id="churchDetailTitle">Church Details</h2>
+                <button class="developer-icon-btn" onclick="document.getElementById('churchDetailModal').style.display='none'"><i class="fas fa-times"></i></button>
+            </header>
+            <div class="developer-modal-body" id="churchDetailBody">
+                <div class="developer-empty"><i class="fas fa-circle-notch fa-spin"></i><span>Loading details...</span></div>
+            </div>
+            <footer class="developer-modal-footer" id="churchDetailActions">
+                <!-- Actions will be injected here -->
+            </footer>
+        </div>
+    </div>
+
+    <script src="../js/supabase-config.js?v=20260624-5"></script>
+    <script src="../js/developer-portal.js?v=20260624-5"></script>
 </body>
 </html>

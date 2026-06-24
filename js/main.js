@@ -4,13 +4,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const completeRegistrationBtn = document.getElementById('completeRegistrationBtn');
     
+    const isChurchRegistrationPage = Boolean(document.getElementById('churchRegisterForm'));
+    const isMemberSignupPage = Boolean(document.getElementById('memberSignupForm'));
+
     // Check session on load to handle returning users from email verification
-    client.auth.getSession().then(async ({ data: { session } }) => {
+    if (client && (isChurchRegistrationPage || isMemberSignupPage)) {
+        client.auth.getSession().then(async ({ data: { session } }) => {
         if (!session) return;
         
         // Church Registration Completion
         const pendingChurchStr = localStorage.getItem('pendingChurchRegistration');
         if (pendingChurchStr && document.getElementById('completionState') && document.getElementById('churchRegisterForm')) {
+            
+            if (pendingChurch.owner_email !== session.user.email || Date.now() > pendingChurch.expires_at) {
+                showMessage('registerMessage', '<i class="fas fa-exclamation-triangle"></i> We could not safely restore this application on this device. Please sign in and start the completion step again.', 'error');
+                return;
+            }
+
             document.getElementById('churchRegisterForm').style.display = 'none';
             document.querySelector('.form-header').style.display = 'none';
             document.getElementById('completionState').style.display = 'block';
@@ -57,6 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Member Signup Completion
         const pendingMemberStr = localStorage.getItem('pendingMemberSignup');
         if (pendingMemberStr && document.getElementById('completionState') && document.getElementById('memberSearchSection')) {
+            
+            if (pendingMember.owner_email !== session.user.email || Date.now() > pendingMember.expires_at) {
+                showMessage('searchMessage', '<i class="fas fa-exclamation-triangle"></i> We could not safely restore this application on this device. Please sign in and start the completion step again.', 'error');
+                document.getElementById('searchMessage').style.display = 'block';
+                return;
+            }
+
             document.getElementById('memberSearchSection').style.display = 'none';
             document.getElementById('memberSignupForm').style.display = 'none';
             document.querySelector('.form-header').style.display = 'none';
@@ -99,6 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    }
 
     const LEGAL_DOCUMENT_VERSION = '2026-06-24';
 
@@ -306,6 +325,10 @@ You can continue, but our developer review team may ask for more verification. C
 
                 // Save pending registration metadata to localStorage so we can resume after email verification
                 localStorage.setItem('pendingChurchRegistration', JSON.stringify({
+                    flow_type: 'church_registration',
+                    owner_email: adminEmail,
+                    expires_at: Date.now() + 24 * 60 * 60 * 1000,
+                    created_at: Date.now(),
                     church_name: displayChurchName,
                     location: churchName,
                     church_address: address,
@@ -321,6 +344,7 @@ You can continue, but our developer review team may ask for more verification. C
                     email: adminEmail,
                     password: password,
                     options: {
+                        emailRedirectTo: `${window.location.origin}/register-church.html?complete=1`,
                         data: {
                             full_name: adminName,
                             phone: adminPhone,
@@ -457,6 +481,10 @@ You can continue, but our developer review team may ask for more verification. C
             try {
                 // Save pending request
                 localStorage.setItem('pendingMemberSignup', JSON.stringify({
+                    flow_type: 'member_signup',
+                    owner_email: memberEmail,
+                    expires_at: Date.now() + 24 * 60 * 60 * 1000,
+                    created_at: Date.now(),
                     target_church_id: selectedChurch.placeId || selectedChurch.id
                 }));
 
@@ -464,6 +492,7 @@ You can continue, but our developer review team may ask for more verification. C
                     email: memberEmail,
                     password: password,
                     options: {
+                        emailRedirectTo: `${window.location.origin}/member-signup.html?complete=1`,
                         data: {
                             full_name: memberName,
                             phone: memberPhone,
