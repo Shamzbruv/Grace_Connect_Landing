@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const client = window.gcSupabase;
 
     const LEGAL_DOCUMENT_VERSION = '2026-06-24';
 
@@ -110,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (denominationSelect) {
         const loadDenominations = async () => {
             try {
-                const { data, error } = await window.supabase.rpc('get_active_denominations');
+                const { data, error } = await client.rpc('get_active_denominations');
                 if (error) throw error;
                 
                 denominationSelect.innerHTML = '<option value="" disabled selected>Select your denomination</option>';
@@ -183,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const { data: conflictResult, error: conflictError } = await window.supabase.rpc('check_church_registration_conflicts', {
+                const { data: conflictResult, error: conflictError } = await client.rpc('check_church_registration_conflicts', {
                     church_name: displayChurchName,
                     location_name: churchName,
                     address: address,
@@ -253,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ];
 
                     for (const policyKey of requiredPolicies) {
-                        const { data: acceptanceId, error: acceptanceError } = await window.supabase.rpc('accept_policy_document', {
+                        const { data: acceptanceId, error: acceptanceError } = await client.rpc('accept_policy_document', {
                             target_document_key: policyKey,
                             target_document_version: LEGAL_DOCUMENT_VERSION,
                             acceptance_source: 'web_church_registration',
@@ -266,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (!legalAcceptanceId) legalAcceptanceId = acceptanceId;
                     }
 
-                    const { error: requestError } = await window.supabase.rpc('submit_church_registration', {
+                    const { error: requestError } = await client.rpc('submit_church_registration', {
                         church_name: displayChurchName,
                         location: churchName,
                         church_address: address,
@@ -288,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('verifyEmailState').style.display = 'block';
                 } else {
                     document.getElementById('registerSuccessState').style.display = 'block';
-                    await window.supabase.auth.signOut();
+                    await client.auth.signOut();
                 }
                 
             } catch (error) {
@@ -330,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
             searchMessage.style.display = 'none';
 
             try {
-                const { data: churches, error } = await window.supabase.rpc('get_public_church_directory', {
+                const { data: churches, error } = await client.rpc('get_public_church_directory', {
                     search_query: query
                 });
 
@@ -404,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const { data, error } = await window.supabase.auth.signUp({
+                const { data, error } = await client.auth.signUp({
                     email: memberEmail,
                     password: password,
                     options: {
@@ -442,7 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ];
 
                     for (const policyKey of requiredPolicies) {
-                        const { error: acceptanceError } = await window.supabase.rpc('accept_policy_document', {
+                        const { error: acceptanceError } = await client.rpc('accept_policy_document', {
                             target_document_key: policyKey,
                             target_document_version: LEGAL_DOCUMENT_VERSION,
                             acceptance_source: 'web_member_signup',
@@ -454,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (acceptanceError) throw acceptanceError;
                     }
 
-                    const { error: requestError } = await window.supabase.rpc('request_church_membership', {
+                    const { error: requestError } = await client.rpc('request_church_membership', {
                         target_church_id: selectedChurch.placeId || selectedChurch.id,
                         request_note: 'Requested from landing page signup.'
                     });
@@ -468,7 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('verifyEmailState').style.display = 'block';
                 } else {
                     document.getElementById('memberSuccessState').style.display = 'block';
-                    await window.supabase.auth.signOut();
+                    await client.auth.signOut();
                 }
                 
             } catch (error) {

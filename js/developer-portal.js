@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const client = window.gcSupabase;
     const isLoginPage = Boolean(document.getElementById('developerLoginForm'));
     const isPortalPage = Boolean(document.querySelector('.developer-portal-page'));
     const state = {
@@ -35,13 +36,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const rpc = async (fn, params = {}) => {
-        const { data, error } = await window.supabase.rpc(fn, params);
+        const { data, error } = await client.rpc(fn, params);
         if (error) throw error;
         return data;
     };
 
     const verifyDeveloperSession = async () => {
-        const { data: sessionResult } = await window.supabase.auth.getSession();
+        const { data: sessionResult } = await client.auth.getSession();
         if (!sessionResult?.session) {
             throw new Error('Please sign in to continue.');
         }
@@ -53,13 +54,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById('developerLoginForm');
         const button = document.getElementById('developerLoginBtn');
 
-        window.supabase.auth.getSession().then(async ({ data }) => {
+        client.auth.getSession().then(async ({ data }) => {
             if (!data?.session) return;
             try {
                 await verifyDeveloperSession();
                 window.location.href = 'index.html';
             } catch (_) {
-                await window.supabase.auth.signOut();
+                await client.auth.signOut();
             }
         });
 
@@ -72,13 +73,13 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const email = document.getElementById('developerEmail').value.trim();
                 const password = document.getElementById('developerPassword').value;
-                const { error } = await window.supabase.auth.signInWithPassword({ email, password });
+                const { error } = await client.auth.signInWithPassword({ email, password });
                 if (error) throw error;
 
                 await verifyDeveloperSession();
                 window.location.href = 'index.html';
             } catch (error) {
-                await window.supabase.auth.signOut();
+                await client.auth.signOut();
                 showMessage('developerLoginMessage', error.message || 'Developer access denied.', 'error');
                 button.disabled = false;
                 button.textContent = 'Sign In';
@@ -380,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('developerSignOutBtn')?.addEventListener('click', async () => {
-        await window.supabase.auth.signOut();
+        await client.auth.signOut();
         window.location.href = 'login.html';
     });
 
@@ -414,7 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderSessionPill();
             await loadOverview();
         } catch (error) {
-            await window.supabase.auth.signOut();
+            await client.auth.signOut();
             window.location.href = `login.html?reason=${encodeURIComponent(error.message || 'access-denied')}`;
         }
     })();
