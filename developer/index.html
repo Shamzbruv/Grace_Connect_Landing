@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Portal - Grace Connect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="developer-portal-page">
+    <aside class="developer-sidebar">
+        <a href="../index.html" class="developer-sidebar-brand">
+            <img src="../assets/logo.png" alt="Grace Connect" onerror="this.style.display='none'">
+            <span>Grace Connect</span>
+        </a>
+        <nav class="developer-nav" aria-label="Developer portal">
+            <button class="developer-nav-btn active" data-view="overview"><i class="fas fa-chart-line"></i><span>Overview</span></button>
+            <button class="developer-nav-btn" data-view="churches"><i class="fas fa-church"></i><span>Churches</span></button>
+            <button class="developer-nav-btn" data-view="members"><i class="fas fa-user-check"></i><span>Members</span></button>
+            <button class="developer-nav-btn" data-view="users"><i class="fas fa-users"></i><span>Users</span></button>
+            <button class="developer-nav-btn" data-view="developers"><i class="fas fa-user-shield"></i><span>Developers</span></button>
+            <button class="developer-nav-btn" data-view="audit"><i class="fas fa-clipboard-list"></i><span>Audit</span></button>
+        </nav>
+        <button class="developer-sign-out" id="developerSignOutBtn"><i class="fas fa-right-from-bracket"></i><span>Sign Out</span></button>
+    </aside>
+
+    <main class="developer-main">
+        <header class="developer-topbar">
+            <div>
+                <p class="developer-kicker">Platform Operations</p>
+                <h1>Developer Portal</h1>
+            </div>
+            <div class="developer-session-pill" id="developerSessionPill">
+                <i class="fas fa-circle-notch fa-spin"></i>
+                <span>Verifying access</span>
+            </div>
+        </header>
+
+        <div id="developerPortalMessage" class="message" style="display: none;"></div>
+
+        <section class="developer-view active" id="view-overview">
+            <div class="developer-section-heading">
+                <div>
+                    <h2>Platform Overview</h2>
+                    <p>Live operating picture from the same Supabase project used by the app.</p>
+                </div>
+                <button class="btn btn-secondary developer-refresh-btn" data-refresh="overview"><i class="fas fa-rotate"></i> Refresh</button>
+            </div>
+            <div class="developer-stat-grid" id="dashboardStats"></div>
+            <div class="developer-two-column">
+                <div class="developer-panel">
+                    <h3>Recent Signups</h3>
+                    <div id="recentSignupsList" class="developer-list"></div>
+                </div>
+                <div class="developer-panel">
+                    <h3>Churches Missing Setup</h3>
+                    <div id="missingSetupList" class="developer-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="developer-view" id="view-churches">
+            <div class="developer-section-heading">
+                <div>
+                    <h2>Church Management</h2>
+                    <p>Approve registrations, suspend unsafe records, and keep the public directory clean.</p>
+                </div>
+                <div class="developer-filters">
+                    <select id="churchStatusFilter">
+                        <option value="">All statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="suspended">Suspended</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                    <input type="search" id="churchSearchFilter" placeholder="Search churches">
+                </div>
+            </div>
+            <div id="churchList" class="developer-table-shell"></div>
+        </section>
+
+        <section class="developer-view" id="view-members">
+            <div class="developer-section-heading">
+                <div>
+                    <h2>Pending Member Requests</h2>
+                    <p>Platform support view for membership requests that need intervention.</p>
+                </div>
+                <input type="search" id="memberRequestSearch" placeholder="Search requests">
+            </div>
+            <div id="memberRequestList" class="developer-table-shell"></div>
+        </section>
+
+        <section class="developer-view" id="view-users">
+            <div class="developer-section-heading">
+                <div>
+                    <h2>User Search</h2>
+                    <p>Find accounts globally for support, role repair, and church assignment checks.</p>
+                </div>
+                <input type="search" id="userSearchInput" placeholder="Search users">
+            </div>
+            <div id="userSearchList" class="developer-table-shell"></div>
+        </section>
+
+        <section class="developer-view" id="view-developers">
+            <div class="developer-section-heading">
+                <div>
+                    <h2>Developer Accounts</h2>
+                    <p>Separate platform access from church roles. Only super/security developers can change this list.</p>
+                </div>
+            </div>
+            <form id="developerAccountForm" class="developer-inline-form">
+                <input type="email" id="developerAccountEmail" placeholder="developer@example.com" required>
+                <select id="developerAccountRole">
+                    <option value="read_only_support">Read-only support</option>
+                    <option value="support_developer">Support developer</option>
+                    <option value="content_moderator">Content moderator</option>
+                    <option value="billing_support">Billing support</option>
+                    <option value="security_admin">Security admin</option>
+                    <option value="super_developer">Super developer</option>
+                </select>
+                <select id="developerAccountStatus">
+                    <option value="active">Active</option>
+                    <option value="pending">Pending</option>
+                    <option value="disabled">Disabled</option>
+                </select>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> Save</button>
+            </form>
+            <div id="developerAccountList" class="developer-table-shell"></div>
+        </section>
+
+        <section class="developer-view" id="view-audit">
+            <div class="developer-section-heading">
+                <div>
+                    <h2>Developer Audit</h2>
+                    <p>Every portal action is recorded with actor, target, timestamp, and details.</p>
+                </div>
+                <button class="btn btn-secondary developer-refresh-btn" data-refresh="audit"><i class="fas fa-rotate"></i> Refresh</button>
+            </div>
+            <div id="developerAuditList" class="developer-table-shell"></div>
+        </section>
+    </main>
+
+    <script src="../js/supabase-config.js"></script>
+    <script src="../js/developer-portal.js"></script>
+</body>
+</html>

@@ -1,0 +1,421 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const isLoginPage = Boolean(document.getElementById('developerLoginForm'));
+    const isPortalPage = Boolean(document.querySelector('.developer-portal-page'));
+    const state = {
+        session: null,
+        activeView: 'overview'
+    };
+
+    const escapeHtml = (value) => String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+
+    const formatDate = (value) => {
+        if (!value) return 'Not recorded';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return 'Not recorded';
+        return date.toLocaleString([], {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+        });
+    };
+
+    const showMessage = (id, message, type = 'error') => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = message;
+        el.className = `message ${type}`;
+        el.style.display = message ? 'block' : 'none';
+    };
+
+    const rpc = async (fn, params = {}) => {
+        const { data, error } = await window.supabase.rpc(fn, params);
+        if (error) throw error;
+        return data;
+    };
+
+    const verifyDeveloperSession = async () => {
+        const { data: sessionResult } = await window.supabase.auth.getSession();
+        if (!sessionResult?.session) {
+            throw new Error('Please sign in to continue.');
+        }
+        state.session = await rpc('developer_get_session');
+        return state.session;
+    };
+
+    if (isLoginPage) {
+        const form = document.getElementById('developerLoginForm');
+        const button = document.getElementById('developerLoginBtn');
+
+        window.supabase.auth.getSession().then(async ({ data }) => {
+            if (!data?.session) return;
+            try {
+                await verifyDeveloperSession();
+                window.location.href = 'index.html';
+            } catch (_) {
+                await window.supabase.auth.signOut();
+            }
+        });
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+            showMessage('developerLoginMessage', '');
+
+            try {
+                const email = document.getElementById('developerEmail').value.trim();
+                const password = document.getElementById('developerPassword').value;
+                const { error } = await window.supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+
+                await verifyDeveloperSession();
+                window.location.href = 'index.html';
+            } catch (error) {
+                await window.supabase.auth.signOut();
+                showMessage('developerLoginMessage', error.message || 'Developer access denied.', 'error');
+                button.disabled = false;
+                button.textContent = 'Sign In';
+            }
+        });
+    }
+
+    if (!isPortalPage) return;
+
+    const setLoading = (id, label = 'Loading...') => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = `<div class="developer-empty"><i class="fas fa-circle-notch fa-spin"></i><span>${escapeHtml(label)}</span></div>`;
+    };
+
+    const renderEmpty = (id, label) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = `<div class="developer-empty"><i class="fas fa-inbox"></i><span>${escapeHtml(label)}</span></div>`;
+    };
+
+    const renderSessionPill = () => {
+        const el = document.getElementById('developerSessionPill');
+        if (!el || !state.session) return;
+        el.innerHTML = `
+            <i class="fas fa-shield-halved"></i>
+            <span>${escapeHtml(state.session.email)} · ${escapeHtml(state.session.developer_role)}</span>
+        `;
+    };
+
+    const renderTable = (id, headers, rows, emptyLabel) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (!rows.length) {
+            renderEmpty(id, emptyLabel);
+            return;
+        }
+
+        el.innerHTML = `
+            <table class="developer-table">
+                <thead>
+                    <tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join('')}</tr>
+                </thead>
+                <tbody>${rows.join('')}</tbody>
+            </table>
+        `;
+    };
+
+    const loadOverview = async () => {
+        setLoading('dashboardStats', 'Loading dashboard');
+        setLoading('recentSignupsList');
+        setLoading('missingSetupList');
+        const data = await rpc('developer_get_dashboard');
+        const stats = [
+            ['Total Users', data.total_users, 'fa-users'],
+            ['Pending Members', data.pending_members, 'fa-user-clock'],
+            ['Total Churches', data.total_churches, 'fa-church'],
+            ['Approved Churches', data.approved_churches, 'fa-circle-check'],
+            ['Pending Churches', data.pending_churches, 'fa-hourglass-half'],
+            ['Suspended Churches', data.suspended_churches, 'fa-ban'],
+            ['Developer Accounts', data.developer_accounts, 'fa-user-shield']
+        ];
+
+        document.getElementById('dashboardStats').innerHTML = stats.map(([label, value, icon]) => `
+            <div class="developer-stat">
+                <i class="fas ${icon}"></i>
+                <span>${escapeHtml(label)}</span>
+                <strong>${escapeHtml(value)}</strong>
+            </div>
+        `).join('');
+
+        const recent = data.recent_signups || [];
+        document.getElementById('recentSignupsList').innerHTML = recent.length
+            ? recent.map((user) => `
+                <div class="developer-list-item">
+                    <strong>${escapeHtml(user.fullName || user.email)}</strong>
+                    <span>${escapeHtml(user.email)} · ${escapeHtml(user.approvalStatus || 'unknown')}</span>
+                    <small>${formatDate(user.joinDate)}</small>
+                </div>
+            `).join('')
+            : '<div class="developer-empty"><i class="fas fa-inbox"></i><span>No recent signups.</span></div>';
+
+        const missing = data.churches_missing_setup || [];
+        document.getElementById('missingSetupList').innerHTML = missing.length
+            ? missing.map((church) => `
+                <div class="developer-list-item">
+                    <strong>${escapeHtml(church.name || church.placeId || church.id)}</strong>
+                    <span>${escapeHtml(church.address || 'Address missing')}</span>
+                    <small>${escapeHtml(church.ownerUserId ? 'Owner set' : 'Owner missing')}</small>
+                </div>
+            `).join('')
+            : '<div class="developer-empty"><i class="fas fa-circle-check"></i><span>No setup gaps found.</span></div>';
+    };
+
+    const statusBadge = (status) => {
+        const normalized = String(status || 'unknown').toLowerCase();
+        return `<span class="developer-status developer-status-${escapeHtml(normalized)}">${escapeHtml(normalized)}</span>`;
+    };
+
+    const loadChurches = async () => {
+        setLoading('churchList', 'Loading churches');
+        const status = document.getElementById('churchStatusFilter')?.value || '';
+        const search = document.getElementById('churchSearchFilter')?.value || '';
+        const churches = await rpc('developer_list_churches', { p_status: status || null, p_search: search || null });
+
+        renderTable('churchList', ['Church', 'Contact', 'Status', 'Setup', 'Actions'], churches.map((church) => `
+            <tr>
+                <td>
+                    <strong>${escapeHtml(church.name)}</strong>
+                    <span>${escapeHtml(church.address || 'No address')}</span>
+                    <small>${escapeHtml(church.denomination || 'No denomination')}</small>
+                </td>
+                <td>
+                    <strong>${escapeHtml(church.pastor_or_admin_name || 'No contact')}</strong>
+                    <span>${escapeHtml(church.pastor_or_admin_email || '')}</span>
+                    <small>${escapeHtml(church.pastor_or_admin_phone || '')}</small>
+                </td>
+                <td>${statusBadge(church.approval_status || church.status)}<small>Public: ${church.public_visibility ? 'yes' : 'no'}</small></td>
+                <td><span>${escapeHtml(church.member_count || 0)} members</span><small>Created ${formatDate(church.createdAt)}</small></td>
+                <td>
+                    <div class="developer-action-row">
+                        <button class="developer-icon-btn" title="Approve" data-action="approve-church" data-id="${escapeHtml(church.placeId || church.id)}"><i class="fas fa-check"></i></button>
+                        <button class="developer-icon-btn" title="Reject" data-action="reject-church" data-id="${escapeHtml(church.placeId || church.id)}"><i class="fas fa-xmark"></i></button>
+                        <button class="developer-icon-btn danger" title="Suspend" data-action="suspend-church" data-id="${escapeHtml(church.placeId || church.id)}"><i class="fas fa-ban"></i></button>
+                    </div>
+                </td>
+            </tr>
+        `), 'No churches found.');
+    };
+
+    const loadMemberRequests = async () => {
+        setLoading('memberRequestList', 'Loading member requests');
+        const search = document.getElementById('memberRequestSearch')?.value || '';
+        const members = await rpc('developer_list_member_requests', { p_search: search || null });
+
+        renderTable('memberRequestList', ['Member', 'Church', 'Status', 'Actions'], members.map((member) => `
+            <tr>
+                <td>
+                    <strong>${escapeHtml(member.fullName || member.email)}</strong>
+                    <span>${escapeHtml(member.email)}</span>
+                    <small>${escapeHtml(member.phone || '')}</small>
+                </td>
+                <td>
+                    <strong>${escapeHtml(member.church_name || member.placeName || member.placeId)}</strong>
+                    <span>${escapeHtml(member.placeId || '')}</span>
+                </td>
+                <td>${statusBadge(member.approvalStatus)}<small>${formatDate(member.joinDate)}</small></td>
+                <td>
+                    <div class="developer-action-row">
+                        <button class="developer-icon-btn" title="Approve" data-action="approve-member" data-id="${escapeHtml(member.id)}"><i class="fas fa-check"></i></button>
+                        <button class="developer-icon-btn danger" title="Reject" data-action="reject-member" data-id="${escapeHtml(member.id)}"><i class="fas fa-xmark"></i></button>
+                    </div>
+                </td>
+            </tr>
+        `), 'No pending member requests.');
+    };
+
+    const loadUsers = async () => {
+        setLoading('userSearchList', 'Loading users');
+        const search = document.getElementById('userSearchInput')?.value || '';
+        const users = await rpc('developer_search_users', { p_search: search || null, p_church_id: null });
+
+        renderTable('userSearchList', ['User', 'Church', 'Roles', 'State'], users.map((user) => `
+            <tr>
+                <td>
+                    <strong>${escapeHtml(user.fullName || user.email)}</strong>
+                    <span>${escapeHtml(user.email)}</span>
+                    <small>${escapeHtml(user.isDeveloper ? 'Developer flag set' : '')}</small>
+                </td>
+                <td><strong>${escapeHtml(user.placeName || 'No church')}</strong><span>${escapeHtml(user.placeId || '')}</span></td>
+                <td><span>${escapeHtml((user.roles || []).join(', ') || 'No roles')}</span></td>
+                <td>${statusBadge(user.approvalStatus)}<small>${escapeHtml(user.accountState || 'unknown')}</small></td>
+            </tr>
+        `), 'No users found.');
+    };
+
+    const loadDeveloperAccounts = async () => {
+        setLoading('developerAccountList', 'Loading developer accounts');
+        const developers = await rpc('developer_list_developer_accounts');
+
+        renderTable('developerAccountList', ['Email', 'Role', 'Status', 'Last Login', 'Actions'], developers.map((developer) => `
+            <tr>
+                <td><strong>${escapeHtml(developer.email)}</strong><span>${escapeHtml(developer.user_id || 'Auth user not linked yet')}</span></td>
+                <td><span>${escapeHtml(developer.developer_role)}</span></td>
+                <td>${statusBadge(developer.status)}</td>
+                <td><span>${formatDate(developer.last_login_at)}</span><small>Created ${formatDate(developer.created_at)}</small></td>
+                <td>
+                    <button class="developer-icon-btn danger" title="Disable developer access" data-action="remove-developer" data-email="${escapeHtml(developer.email)}"><i class="fas fa-user-slash"></i></button>
+                </td>
+            </tr>
+        `), 'No developer accounts found.');
+    };
+
+    const loadAudit = async () => {
+        setLoading('developerAuditList', 'Loading audit logs');
+        const logs = await rpc('developer_get_audit_logs', { p_limit: 100 });
+
+        renderTable('developerAuditList', ['Action', 'Actor', 'Target', 'Details'], logs.map((log) => `
+            <tr>
+                <td><strong>${escapeHtml(log.action)}</strong><span>${formatDate(log.created_at)}</span></td>
+                <td><span>${escapeHtml(log.actor_email || log.actor_user_id || 'Unknown')}</span></td>
+                <td><span>${escapeHtml(log.target_type || '')}</span><small>${escapeHtml(log.target_id || '')}</small></td>
+                <td><code>${escapeHtml(JSON.stringify(log.details || {}))}</code></td>
+            </tr>
+        `), 'No developer audit events yet.');
+    };
+
+    const loadActiveView = async () => {
+        showMessage('developerPortalMessage', '');
+        try {
+            if (state.activeView === 'overview') await loadOverview();
+            if (state.activeView === 'churches') await loadChurches();
+            if (state.activeView === 'members') await loadMemberRequests();
+            if (state.activeView === 'users') await loadUsers();
+            if (state.activeView === 'developers') await loadDeveloperAccounts();
+            if (state.activeView === 'audit') await loadAudit();
+        } catch (error) {
+            showMessage('developerPortalMessage', error.message || 'Unable to load developer portal data.', 'error');
+        }
+    };
+
+    const switchView = (view) => {
+        state.activeView = view;
+        document.querySelectorAll('.developer-nav-btn').forEach((button) => {
+            button.classList.toggle('active', button.dataset.view === view);
+        });
+        document.querySelectorAll('.developer-view').forEach((section) => {
+            section.classList.toggle('active', section.id === `view-${view}`);
+        });
+        loadActiveView();
+    };
+
+    const handleAction = async (button) => {
+        const action = button.dataset.action;
+        const id = button.dataset.id;
+        const email = button.dataset.email;
+        button.disabled = true;
+
+        try {
+            if (action === 'approve-church') {
+                await rpc('developer_approve_church_registration', { p_church_id: id });
+                showMessage('developerPortalMessage', 'Church approved and added to the public directory.', 'success');
+                await loadChurches();
+            }
+            if (action === 'reject-church') {
+                const reason = window.prompt('Reason for rejecting this church registration?') || '';
+                await rpc('developer_reject_church_registration', { p_church_id: id, p_reason: reason });
+                showMessage('developerPortalMessage', 'Church registration rejected.', 'success');
+                await loadChurches();
+            }
+            if (action === 'suspend-church') {
+                const reason = window.prompt('Reason for suspending this church?') || '';
+                await rpc('developer_suspend_church', { p_church_id: id, p_reason: reason });
+                showMessage('developerPortalMessage', 'Church suspended and hidden from public search.', 'success');
+                await loadChurches();
+            }
+            if (action === 'approve-member') {
+                await rpc('developer_approve_member_request', { p_user_id: id });
+                showMessage('developerPortalMessage', 'Member request approved.', 'success');
+                await loadMemberRequests();
+            }
+            if (action === 'reject-member') {
+                const reason = window.prompt('Reason for rejecting this member request?') || '';
+                await rpc('developer_reject_member_request', { p_user_id: id, p_reason: reason });
+                showMessage('developerPortalMessage', 'Member request rejected.', 'success');
+                await loadMemberRequests();
+            }
+            if (action === 'remove-developer') {
+                if (!window.confirm(`Disable developer access for ${email}?`)) return;
+                await rpc('developer_remove_developer_access', { p_email: email });
+                showMessage('developerPortalMessage', 'Developer access disabled.', 'success');
+                await loadDeveloperAccounts();
+            }
+        } catch (error) {
+            showMessage('developerPortalMessage', error.message || 'Action failed.', 'error');
+        } finally {
+            button.disabled = false;
+        }
+    };
+
+    const debounce = (callback, delay = 350) => {
+        let timer;
+        return (...args) => {
+            window.clearTimeout(timer);
+            timer = window.setTimeout(() => callback(...args), delay);
+        };
+    };
+
+    document.querySelectorAll('.developer-nav-btn').forEach((button) => {
+        button.addEventListener('click', () => switchView(button.dataset.view));
+    });
+
+    document.addEventListener('click', (event) => {
+        const actionButton = event.target.closest('[data-action]');
+        if (actionButton) handleAction(actionButton);
+
+        const refreshButton = event.target.closest('[data-refresh]');
+        if (refreshButton) loadActiveView();
+    });
+
+    document.getElementById('developerSignOutBtn')?.addEventListener('click', async () => {
+        await window.supabase.auth.signOut();
+        window.location.href = 'login.html';
+    });
+
+    document.getElementById('churchStatusFilter')?.addEventListener('change', loadChurches);
+    document.getElementById('churchSearchFilter')?.addEventListener('input', debounce(loadChurches));
+    document.getElementById('memberRequestSearch')?.addEventListener('input', debounce(loadMemberRequests));
+    document.getElementById('userSearchInput')?.addEventListener('input', debounce(loadUsers));
+
+    document.getElementById('developerAccountForm')?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const email = document.getElementById('developerAccountEmail').value.trim();
+        const role = document.getElementById('developerAccountRole').value;
+        const status = document.getElementById('developerAccountStatus').value;
+        try {
+            await rpc('developer_upsert_developer_account', {
+                p_email: email,
+                p_developer_role: role,
+                p_status: status
+            });
+            event.target.reset();
+            showMessage('developerPortalMessage', 'Developer account saved.', 'success');
+            await loadDeveloperAccounts();
+        } catch (error) {
+            showMessage('developerPortalMessage', error.message || 'Could not save developer account.', 'error');
+        }
+    });
+
+    (async () => {
+        try {
+            await verifyDeveloperSession();
+            renderSessionPill();
+            await loadOverview();
+        } catch (error) {
+            await window.supabase.auth.signOut();
+            window.location.href = `login.html?reason=${encodeURIComponent(error.message || 'access-denied')}`;
+        }
+    })();
+});

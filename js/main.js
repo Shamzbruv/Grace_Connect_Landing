@@ -137,6 +137,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
+                const { data: conflictResult, error: conflictError } = await window.supabase.rpc('check_church_registration_conflicts', {
+                    church_name: displayChurchName,
+                    location_name: churchName,
+                    address: address,
+                    parish: null,
+                    denomination_id: denomination
+                });
+
+                if (conflictError) throw conflictError;
+
+                if (conflictResult?.has_conflict) {
+                    const shouldContinue = window.confirm(`${conflictResult.safe_message}\n\nYou can continue, but our developer review team may ask for more verification. Continue with this registration application?`);
+                    if (!shouldContinue) {
+                        showMessage('registerMessage', '<i class="fas fa-info-circle"></i> Registration paused. Please search the church directory or contact Grace Connect support if this church is already registered.', 'error');
+                        submitRegBtn.disabled = false;
+                        submitRegBtn.innerHTML = 'Submit Registration for Approval';
+                        return;
+                    }
+                }
+
                 const { data, error } = await supabase.auth.signUp({
                     email: adminEmail,
                     password: password,
@@ -175,6 +195,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (error) throw error;
 
                 if (data?.session) {
+                    let legalAcceptanceId = null;
+                    const requiredPolicies = [
+                        'terms',
+                        'privacy',
+                        'community_guidelines',
+                        'age_policy',
+                        'church_admin_access',
+                        'church_registration_authority',
+                        'data_retention'
+                    ];
+
+                    for (const policyKey of requiredPolicies) {
+                        const { data: acceptanceId, error: acceptanceError } = await window.supabase.rpc('accept_policy_document', {
+                            target_document_key: policyKey,
+                            target_document_version: LEGAL_DOCUMENT_VERSION,
+                            acceptance_source: 'web_church_registration',
+                            metadata: {
+                                isAdultConfirmed: true,
+                                authorizedRepresentative: true
+                            }
+                        });
+                        if (acceptanceError) throw acceptanceError;
+                        if (!legalAcceptanceId) legalAcceptanceId = acceptanceId;
+                    }
+
                     const { error: requestError } = await window.supabase.rpc('submit_church_registration', {
                         church_name: displayChurchName,
                         location: churchName,
@@ -185,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         pastor_full_name: adminName,
                         pastor_contact_email: adminEmail,
                         pastor_contact_phone: adminPhone,
-                        legal_acceptance: null
+                        legal_acceptance: legalAcceptanceId
                     });
                     if (requestError) throw requestError;
                 }
@@ -336,6 +381,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (error) throw error;
 
                 if (data?.session) {
+                    const requiredPolicies = [
+                        'terms',
+                        'privacy',
+                        'community_guidelines',
+                        'age_policy',
+                        'location_disclosure'
+                    ];
+
+                    for (const policyKey of requiredPolicies) {
+                        const { error: acceptanceError } = await window.supabase.rpc('accept_policy_document', {
+                            target_document_key: policyKey,
+                            target_document_version: LEGAL_DOCUMENT_VERSION,
+                            acceptance_source: 'web_member_signup',
+                            metadata: {
+                                isAdultConfirmed: true,
+                                locationNoticeAccepted: true
+                            }
+                        });
+                        if (acceptanceError) throw acceptanceError;
+                    }
+
                     const { error: requestError } = await window.supabase.rpc('request_church_membership', {
                         target_church_id: selectedChurch.placeId || selectedChurch.id,
                         request_note: 'Requested from landing page signup.'
