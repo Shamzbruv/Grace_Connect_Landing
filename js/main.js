@@ -50,6 +50,83 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                         if (fetchError) throw fetchError;
                         
+                        const isMatch = checkPoliciesSnapshot(policies, pendingChurch.accepted_policies);
+                        const repromptContainer = document.getElementById('repromptPoliciesContainer_church');
+                        
+                        if (!isMatch && (!repromptContainer || repromptContainer.dataset.validated !== 'true')) {
+                            if (repromptContainer && repromptContainer.style.display !== 'none') {
+                                const checkboxes = repromptContainer.querySelectorAll('input[type="checkbox"]');
+                                let allChecked = true;
+                                checkboxes.forEach(cb => { if(!cb.checked) allChecked = false; });
+                                if(!allChecked) {
+                                    showMessage('completionMessage', '<i class="fas fa-exclamation-triangle"></i> Please accept all required policies.', 'error');
+                                    completeRegistrationBtn.disabled = false;
+                                    completeRegistrationBtn.innerHTML = 'Submit Church Application';
+                                    return;
+                                } else {
+                                    repromptContainer.dataset.validated = 'true';
+                                }
+                            } else {
+                                const msgContainer = document.getElementById('completionMessage');
+                                msgContainer.innerHTML = '';
+                                
+                                const repromptWrapper = document.createElement('div');
+                                repromptWrapper.style.marginTop = '1rem';
+                                repromptWrapper.style.textAlign = 'left';
+                                
+                                const header = document.createElement('p');
+                                header.className = 'text-error';
+                                header.style.fontWeight = 'bold';
+                                header.style.marginBottom = '0.5rem';
+                                header.innerHTML = '<i class="fas fa-exclamation-circle"></i> Policy Requirements Have Changed';
+                                repromptWrapper.appendChild(header);
+                                
+                                const desc = document.createElement('p');
+                                desc.style.marginBottom = '1rem';
+                                desc.textContent = 'Please review and accept the updated policies before continuing.';
+                                repromptWrapper.appendChild(desc);
+                                
+                                const rpContainer = document.createElement('div');
+                                rpContainer.id = 'repromptPoliciesContainer_church';
+                                rpContainer.className = 'form-section legal-consent-section';
+                                rpContainer.style.padding = '16px';
+                                rpContainer.style.background = 'rgba(0,0,0,0.2)';
+                                rpContainer.style.borderRadius = '8px';
+                                repromptWrapper.appendChild(rpContainer);
+                                
+                                policies.forEach(policy => {
+                                    const label = document.createElement('label');
+                                    label.className = 'checkbox-consent';
+                                    
+                                    const input = document.createElement('input');
+                                    input.type = 'checkbox';
+                                    input.required = true;
+                                    
+                                    const span = document.createElement('span');
+                                    let safeUrl = '#';
+                                    try {
+                                        const parsedUrl = new URL(policy.content_url, window.location.origin);
+                                        if (parsedUrl.protocol === 'https:' || parsedUrl.origin === window.location.origin) {
+                                            safeUrl = parsedUrl.href;
+                                        }
+                                    } catch(e) {}
+                                    span.innerHTML = 'I have read and agree to the <a href="' + safeUrl + '" target="_blank" rel="noopener">' + policy.title + '</a>.';
+                                    
+                                    label.appendChild(input);
+                                    label.appendChild(span);
+                                    rpContainer.appendChild(label);
+                                });
+                                
+                                msgContainer.appendChild(repromptWrapper);
+                                msgContainer.className = 'message';
+                                msgContainer.style.display = 'block';
+                                
+                                completeRegistrationBtn.disabled = false;
+                                completeRegistrationBtn.innerHTML = 'Submit Church Application';
+                                return;
+                            }
+                        }
+                        
                         // 2. Accept each policy
                         for (const policy of policies) {
                             const { data: acceptanceId, error: acceptanceError } = await client.rpc('accept_policy_document', {
@@ -124,6 +201,83 @@ document.addEventListener('DOMContentLoaded', () => {
                             p_flow_type: 'member_signup'
                         });
                         if (fetchError) throw fetchError;
+                        
+                        const isMatch = checkPoliciesSnapshot(policies, pendingMember.accepted_policies);
+                        const repromptContainer = document.getElementById('repromptPoliciesContainer_member');
+                        
+                        if (!isMatch && (!repromptContainer || repromptContainer.dataset.validated !== 'true')) {
+                            if (repromptContainer && repromptContainer.style.display !== 'none') {
+                                const checkboxes = repromptContainer.querySelectorAll('input[type="checkbox"]');
+                                let allChecked = true;
+                                checkboxes.forEach(cb => { if(!cb.checked) allChecked = false; });
+                                if(!allChecked) {
+                                    showMessage('completionMessage', '<i class="fas fa-exclamation-triangle"></i> Please accept all required policies.', 'error');
+                                    completeRegistrationBtn.disabled = false;
+                                    completeRegistrationBtn.innerHTML = 'Submit Membership Request';
+                                    return;
+                                } else {
+                                    repromptContainer.dataset.validated = 'true';
+                                }
+                            } else {
+                                const msgContainer = document.getElementById('completionMessage');
+                                msgContainer.innerHTML = '';
+                                
+                                const repromptWrapper = document.createElement('div');
+                                repromptWrapper.style.marginTop = '1rem';
+                                repromptWrapper.style.textAlign = 'left';
+                                
+                                const header = document.createElement('p');
+                                header.className = 'text-error';
+                                header.style.fontWeight = 'bold';
+                                header.style.marginBottom = '0.5rem';
+                                header.innerHTML = '<i class="fas fa-exclamation-circle"></i> Policy Requirements Have Changed';
+                                repromptWrapper.appendChild(header);
+                                
+                                const desc = document.createElement('p');
+                                desc.style.marginBottom = '1rem';
+                                desc.textContent = 'Please review and accept the updated policies before continuing.';
+                                repromptWrapper.appendChild(desc);
+                                
+                                const rpContainer = document.createElement('div');
+                                rpContainer.id = 'repromptPoliciesContainer_member';
+                                rpContainer.className = 'form-section legal-consent-section';
+                                rpContainer.style.padding = '16px';
+                                rpContainer.style.background = 'rgba(0,0,0,0.2)';
+                                rpContainer.style.borderRadius = '8px';
+                                repromptWrapper.appendChild(rpContainer);
+                                
+                                policies.forEach(policy => {
+                                    const label = document.createElement('label');
+                                    label.className = 'checkbox-consent';
+                                    
+                                    const input = document.createElement('input');
+                                    input.type = 'checkbox';
+                                    input.required = true;
+                                    
+                                    const span = document.createElement('span');
+                                    let safeUrl = '#';
+                                    try {
+                                        const parsedUrl = new URL(policy.content_url, window.location.origin);
+                                        if (parsedUrl.protocol === 'https:' || parsedUrl.origin === window.location.origin) {
+                                            safeUrl = parsedUrl.href;
+                                        }
+                                    } catch(e) {}
+                                    span.innerHTML = 'I have read and agree to the <a href="' + safeUrl + '" target="_blank" rel="noopener">' + policy.title + '</a>.';
+                                    
+                                    label.appendChild(input);
+                                    label.appendChild(span);
+                                    rpContainer.appendChild(label);
+                                });
+                                
+                                msgContainer.appendChild(repromptWrapper);
+                                msgContainer.className = 'message';
+                                msgContainer.style.display = 'block';
+                                
+                                completeRegistrationBtn.disabled = false;
+                                completeRegistrationBtn.innerHTML = 'Submit Membership Request';
+                                return;
+                            }
+                        }
                         
                         // 2. Accept each policy
                         for (const policy of policies) {
@@ -258,9 +412,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const loadDynamicPolicies = async (flowType, containerId) => {
+    const checkPoliciesSnapshot = (activePolicies, storedPolicies) => {
+        if (!storedPolicies || !Array.isArray(storedPolicies)) return false;
+        if (activePolicies.length !== storedPolicies.length) return false;
+        for (const ap of activePolicies) {
+            const found = storedPolicies.find(sp => sp.key === ap.document_key && sp.version === ap.document_version);
+            if (!found) return false;
+        }
+        return true;
+    };
+
+    const loadDynamicPolicies = async (flowType, containerId, submitBtnId) => {
         const container = document.getElementById(containerId);
-        if (!container) return;
+        const submitBtn = document.getElementById(submitBtnId);
+        if (!container || !submitBtn) return null;
+        
+        submitBtn.disabled = true;
         try {
             const { data, error } = await client.rpc('get_active_policy_documents', { p_flow_type: flowType });
             if (error) throw error;
@@ -269,15 +436,48 @@ document.addEventListener('DOMContentLoaded', () => {
             data.forEach(policy => {
                 const label = document.createElement('label');
                 label.className = 'checkbox-consent';
-                label.innerHTML = `
-                    <input type="checkbox" required data-policy-key="${policy.document_key}" data-policy-version="${policy.document_version}">
-                    <span>I have read and agree to the <a href="${policy.content_url}" target="_blank" rel="noopener">${policy.title}</a>.</span>
-                `;
+                
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.required = true;
+                input.dataset.policyKey = policy.document_key;
+                input.dataset.policyVersion = policy.document_version;
+                
+                const span = document.createElement('span');
+                span.textContent = 'I have read and agree to the ';
+                
+                const a = document.createElement('a');
+                // Basic URL validation
+                let safeUrl = '#';
+                try {
+                    const parsedUrl = new URL(policy.content_url, window.location.origin);
+                    if (parsedUrl.protocol === 'https:' || parsedUrl.origin === window.location.origin) {
+                        safeUrl = parsedUrl.href;
+                    }
+                } catch(e) { }
+                a.href = safeUrl;
+                a.target = '_blank';
+                a.rel = 'noopener';
+                a.textContent = policy.title;
+                
+                span.appendChild(a);
+                span.appendChild(document.createTextNode('.'));
+                
+                label.appendChild(input);
+                label.appendChild(span);
                 container.appendChild(label);
             });
+            submitBtn.disabled = false;
+            return data;
         } catch (err) {
             console.error('Failed to load dynamic policies:', err);
-            container.innerHTML = '<div class="message error" style="display:block;">Failed to load required policies. Please refresh the page.</div>';
+            container.innerHTML = '';
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'message error';
+            errorDiv.style.display = 'block';
+            errorDiv.textContent = 'Failed to load required policies. Please refresh the page.';
+            container.appendChild(errorDiv);
+            return null;
         }
     };
 
@@ -288,8 +488,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const customDenominationGroup = document.getElementById('customDenominationGroup');
     const customDenomination = document.getElementById('customDenomination');
 
+    let currentChurchPolicies = null;
     if (churchRegisterForm) {
-        loadDynamicPolicies('church_application', 'dynamicPoliciesContainer');
+        loadDynamicPolicies('church_application', 'dynamicPoliciesContainer', 'submitRegistrationBtn').then(policies => {
+            currentChurchPolicies = policies;
+        });
     }
 
     if (denominationSelect) {
@@ -392,7 +595,12 @@ You can continue, but our developer review team may ask for more verification. C
                     custom_denomination: customDenomVal,
                     pastor_full_name: adminName,
                     pastor_contact_email: adminEmail,
-                    pastor_contact_phone: adminPhone
+                    pastor_contact_phone: adminPhone,
+                    applicant_note: document.getElementById('additionalNote')?.value.trim() || null,
+                    accepted_policies: currentChurchPolicies ? currentChurchPolicies.map(p => ({
+                        key: p.document_key,
+                        version: p.document_version
+                    })) : []
                 }));
 
                 const { data, error } = await client.auth.signUp({
@@ -438,8 +646,11 @@ You can continue, but our developer review team may ask for more verification. C
     const selectedChurchNameEl = document.getElementById('selectedChurchName');
     const submitMemberBtn = document.getElementById('submitMemberBtn');
     
+    let currentMemberPolicies = null;
     if (memberSignupForm) {
-        loadDynamicPolicies('member_signup', 'dynamicPoliciesContainer');
+        loadDynamicPolicies('member_signup', 'dynamicPoliciesContainer', 'submitMemberBtn').then(policies => {
+            currentMemberPolicies = policies;
+        });
     }
     
     if (searchInput && searchResults && memberSignupForm) {
@@ -534,7 +745,11 @@ You can continue, but our developer review team may ask for more verification. C
                     owner_email: memberEmail,
                     expires_at: Date.now() + 24 * 60 * 60 * 1000,
                     created_at: Date.now(),
-                    target_church_id: selectedChurch.placeId || selectedChurch.id
+                    target_church_id: selectedChurch.placeId || selectedChurch.id,
+                    accepted_policies: currentMemberPolicies ? currentMemberPolicies.map(p => ({
+                        key: p.document_key,
+                        version: p.document_version
+                    })) : []
                 }));
 
                 const { data, error } = await client.auth.signUp({

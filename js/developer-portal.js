@@ -325,10 +325,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     document.getElementById('churchDetailBody').innerHTML = `
                         <div class="developer-detail-grid">
+                            <div class="developer-detail-item"><strong>Location Name:</strong> <span>${escapeHtml(church.location_name || church.name || 'N/A')}</span></div>
                             <div class="developer-detail-item"><strong>Address:</strong> <span>${escapeHtml(church.address || 'N/A')}</span></div>
+                            <div class="developer-detail-item"><strong>Parish:</strong> <span>${escapeHtml(church.parish || 'N/A')}</span></div>
                             <div class="developer-detail-item"><strong>Denomination:</strong> <span>${escapeHtml(church.denomination || 'N/A')}</span></div>
-                            <div class="developer-detail-item"><strong>Contact Name:</strong> <span>${escapeHtml(church.pastor_or_admin_name || 'N/A')}</span></div>
-                            <div class="developer-detail-item"><strong>Contact Email:</strong> <span>${escapeHtml(church.pastor_or_admin_email || 'N/A')}</span></div>
+                            <div class="developer-detail-item"><strong>Contact Name:</strong> <span>${escapeHtml(church.pastor_or_admin_name || church.pastor_name || 'N/A')}</span></div>
+                            <div class="developer-detail-item"><strong>Contact Email:</strong> <span>${escapeHtml(church.pastor_or_admin_email || church.pastor_email || 'N/A')}</span></div>
+                            <div class="developer-detail-item" style="grid-column: 1 / -1;"><strong>Applicant Note:</strong> <span>${escapeHtml(church.applicant_note || 'None')}</span></div>
                             <div class="developer-detail-item"><strong>Status:</strong> <span>${statusBadge(church.approval_status || church.status)}</span></div>
                         </div>
                     `;
