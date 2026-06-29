@@ -145,8 +145,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         // 3. Submit registration
                         const { error: requestError } = await client.rpc('submit_church_registration', {
-                            ...pendingChurch,
-                            legal_acceptance: legalAcceptanceId
+                            church_name: pendingChurch.church_name,
+                            location: pendingChurch.location,
+                            church_address: pendingChurch.church_address,
+                            church_parish: pendingChurch.church_parish,
+                            denomination: pendingChurch.denomination,
+                            custom_denomination: pendingChurch.custom_denomination,
+                            pastor_full_name: pendingChurch.pastor_full_name,
+                            pastor_contact_email: pendingChurch.pastor_contact_email,
+                            pastor_contact_phone: pendingChurch.pastor_contact_phone,
+                            legal_acceptance: legalAcceptanceId,
+                            applicant_note: pendingChurch.applicant_note
                         });
                         if (requestError) throw requestError;
                         
