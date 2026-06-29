@@ -4,7 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const isPortalPage = Boolean(document.querySelector('.developer-portal-page'));
     const state = {
         session: null,
-        activeView: 'overview'
+        activeView: 'overview',
+        selectedChurchId: null
     };
 
     const escapeHtml = (value) => String(value ?? '')
@@ -13,6 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#039;');
+
+    const escapeAttrJson = (value) => escapeHtml(JSON.stringify(value ?? {}));
 
     const formatDate = (value) => {
         if (!value) return 'Not recorded';
@@ -26,6 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
             minute: '2-digit'
         });
     };
+
+    const normalizeList = (value) => Array.isArray(value) ? value : [];
 
     const showMessage = (id, message, type = 'error') => {
         const el = document.getElementById(id);
@@ -128,57 +133,9 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     };
 
-    const loadOverview = async () => {
-        setLoading('dashboardStats', 'Loading dashboard');
-        setLoading('recentSignupsList');
-        setLoading('missingSetupList');
-        const data = await rpc('developer_get_dashboard');
-        const stats = [
-            ['Total Users', data.total_users, 'fa-users'],
-            ['Pending Members', data.pending_members, 'fa-user-clock'],
-            ['Total Churches', data.total_churches, 'fa-church'],
-            ['Approved Churches', data.approved_churches, 'fa-circle-check'],
-            ['Pending Churches', data.pending_churches, 'fa-hourglass-half'],
-            ['Suspended Churches', data.suspended_churches, 'fa-ban'],
-            ['Subscribed Churches', data.subscribed_churches, 'fa-money-check-dollar'],
-            ['No Active Subscription', data.unsubscribed_churches, 'fa-lock'],
-            ['Developer Accounts', data.developer_accounts, 'fa-user-shield']
-        ];
-
-        document.getElementById('dashboardStats').innerHTML = stats.map(([label, value, icon]) => `
-            <div class="developer-stat">
-                <i class="fas ${icon}"></i>
-                <span>${escapeHtml(label)}</span>
-                <strong>${escapeHtml(value)}</strong>
-            </div>
-        `).join('');
-
-        const recent = data.recent_signups || [];
-        document.getElementById('recentSignupsList').innerHTML = recent.length
-            ? recent.map((user) => `
-                <div class="developer-list-item">
-                    <strong>${escapeHtml(user.fullName || user.email)}</strong>
-                    <span>${escapeHtml(user.email)} · ${escapeHtml(user.approvalStatus || 'unknown')}</span>
-                    <small>${formatDate(user.joinDate)}</small>
-                </div>
-            `).join('')
-            : '<div class="developer-empty"><i class="fas fa-inbox"></i><span>No recent signups.</span></div>';
-
-        const missing = data.churches_missing_setup || [];
-        document.getElementById('missingSetupList').innerHTML = missing.length
-            ? missing.map((church) => `
-                <div class="developer-list-item">
-                    <strong>${escapeHtml(church.name || church.placeId || church.id)}</strong>
-                    <span>${escapeHtml(church.address || 'Address missing')}</span>
-                    <small>${escapeHtml(church.ownerUserId ? 'Owner set' : 'Owner missing')}</small>
-                </div>
-            `).join('')
-            : '<div class="developer-empty"><i class="fas fa-circle-check"></i><span>No setup gaps found.</span></div>';
-    };
-
     const statusBadge = (status) => {
         const normalized = String(status || 'unknown').toLowerCase();
-        return `<span class="developer-status developer-status-${escapeHtml(normalized)}">${escapeHtml(normalized)}</span>`;
+        return `<span class="developer-status developer-status-${escapeHtml(normalized)}">${escapeHtml(normalized.replaceAll('_', ' '))}</span>`;
     };
 
     const subscriptionBadge = (church) => {
@@ -197,64 +154,195 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     };
 
+    const modal = () => ({
+        shell: document.getElementById('churchDetailModal'),
+        title: document.getElementById('churchDetailTitle'),
+        body: document.getElementById('churchDetailBody'),
+        actions: document.getElementById('churchDetailActions')
+    });
+
+    const openModal = (title, bodyHtml, actionsHtml = '') => {
+        const parts = modal();
+        parts.title.textContent = title;
+        parts.body.innerHTML = bodyHtml;
+        parts.actions.innerHTML = actionsHtml;
+        parts.shell.style.display = 'flex';
+    };
+
+    const closeModal = () => {
+        const parts = modal();
+        state.selectedChurchId = null;
+        parts.shell.style.display = 'none';
+        parts.body.innerHTML = '';
+        parts.actions.innerHTML = '';
+    };
+
+    const detailRow = (label, value) => `
+        <div class="developer-detail-item">
+            <strong>${escapeHtml(label)}</strong>
+            <span>${escapeHtml(value || 'Not recorded')}</span>
+        </div>
+    `;
+
+    const loadOverview = async () => {
+        setLoading('dashboardStats', 'Loading dashboard');
+        setLoading('recentSignupsList');
+        setLoading('missingSetupList');
+        const data = await rpc('developer_get_dashboard');
+        const stats = [
+            ['Total Users', data.total_users, 'fa-users'],
+            ['Pending Members', data.pending_members, 'fa-user-clock'],
+            ['Open Issues', data.open_support_tickets || 0, 'fa-bug'],
+            ['Total Churches', data.total_churches, 'fa-church'],
+            ['Approved Churches', data.approved_churches, 'fa-circle-check'],
+            ['Pending Churches', data.pending_churches, 'fa-hourglass-half'],
+            ['Suspended Churches', data.suspended_churches, 'fa-ban'],
+            ['Subscribed Churches', data.subscribed_churches, 'fa-money-check-dollar'],
+            ['No Active Subscription', data.unsubscribed_churches, 'fa-lock'],
+            ['Developer Accounts', data.developer_accounts, 'fa-user-shield']
+        ];
+
+        document.getElementById('dashboardStats').innerHTML = stats.map(([label, value, icon]) => `
+            <div class="developer-stat">
+                <i class="fas ${icon}"></i>
+                <span>${escapeHtml(label)}</span>
+                <strong>${escapeHtml(value)}</strong>
+            </div>
+        `).join('');
+
+        const recent = normalizeList(data.recent_signups);
+        document.getElementById('recentSignupsList').innerHTML = recent.length
+            ? recent.map((user) => `
+                <div class="developer-list-item">
+                    <strong>${escapeHtml(user.fullName || user.email)}</strong>
+                    <span>${escapeHtml(user.email)} · ${escapeHtml(user.approvalStatus || 'unknown')}</span>
+                    <small>${formatDate(user.joinDate)}</small>
+                </div>
+            `).join('')
+            : '<div class="developer-empty"><i class="fas fa-inbox"></i><span>No recent signups.</span></div>';
+
+        const missing = normalizeList(data.churches_missing_setup);
+        document.getElementById('missingSetupList').innerHTML = missing.length
+            ? missing.map((church) => {
+                const churchId = church.placeId || church.id;
+                const missingItems = normalizeList(church.missing_items).join(', ') || 'setup details';
+                return `
+                    <div class="developer-list-item developer-list-item-with-action">
+                        <div>
+                            <strong>${escapeHtml(church.name || churchId)}</strong>
+                            <span>${escapeHtml(church.address || 'Address missing')}</span>
+                            <small>Missing: ${escapeHtml(missingItems)}</small>
+                        </div>
+                        <button class="btn btn-secondary btn-small" data-action="prompt-setup" data-id="${escapeHtml(churchId)}">
+                            <i class="fas fa-paper-plane"></i> Prompt
+                        </button>
+                    </div>
+                `;
+            }).join('')
+            : '<div class="developer-empty"><i class="fas fa-circle-check"></i><span>No setup gaps found.</span></div>';
+    };
+
     const loadChurches = async () => {
         setLoading('churchList', 'Loading churches');
         const status = document.getElementById('churchStatusFilter')?.value || '';
         const search = document.getElementById('churchSearchFilter')?.value || '';
-        const churches = await rpc('developer_list_churches', { p_status: status || null, p_search: search || null });
+        const records = await rpc('developer_list_churches', { p_status: status || null, p_search: search || null });
+        const churches = normalizeList(records).filter((church) => church.record_type === 'church');
 
-        renderTable('churchList', ['Church', 'Contact', 'Status', 'Subscription', 'Setup', 'Actions'], churches.map((church) => `
+        renderTable('churchList', ['Church', 'Contact', 'Status', 'Subscription', 'Setup', 'Actions'], churches.map((church) => {
+            const churchId = church.placeId || church.id;
+            return `
+                <tr>
+                    <td>
+                        <strong>${escapeHtml(church.name)}</strong>
+                        <span>${escapeHtml(church.address || 'No address')}</span>
+                        <small>${escapeHtml(church.denomination || 'No denomination')}</small>
+                    </td>
+                    <td>
+                        <strong>${escapeHtml(church.pastor_or_admin_name || 'Open details')}</strong>
+                        <span>${escapeHtml(church.pastor_or_admin_email || '')}</span>
+                        <small>${escapeHtml(church.pastor_or_admin_phone || '')}</small>
+                    </td>
+                    <td>${statusBadge(church.approval_status || church.status)}<small>Public: ${church.public_visibility ? 'yes' : 'no'}</small></td>
+                    <td>${subscriptionBadge(church)}</td>
+                    <td><span>${escapeHtml(church.member_count || 0)} active members</span><small>Created ${formatDate(church.createdAt)}</small></td>
+                    <td>
+                        <div class="developer-action-row">
+                            <button class="developer-icon-btn" title="View details and members" data-action="view-church" data-id="${escapeHtml(churchId)}"><i class="fas fa-eye"></i></button>
+                            <button class="developer-icon-btn" title="Grant 1 free month" data-action="grant-subscription" data-id="${escapeHtml(churchId)}" data-months="1"><i class="fas fa-calendar-plus"></i></button>
+                            <button class="developer-icon-btn danger" title="Turn subscription off" data-action="clear-subscription" data-id="${escapeHtml(churchId)}"><i class="fas fa-lock"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }), 'No churches found.');
+    };
+
+    const loadChurchRequests = async () => {
+        setLoading('churchRequestList', 'Loading church requests');
+        const status = document.getElementById('churchRequestStatusFilter')?.value || '';
+        const search = document.getElementById('churchRequestSearch')?.value || '';
+        const requests = normalizeList(await rpc('developer_list_church_registration_requests', {
+            p_status: status || null,
+            p_search: search || null
+        }));
+
+        renderTable('churchRequestList', ['Church', 'Pastor/Admin', 'Status', 'Submitted', 'Actions'], requests.map((request) => `
             <tr>
                 <td>
-                    <strong>${escapeHtml(church.name)}</strong>
-                    <span>${escapeHtml(church.address || 'No address')}</span>
-                    <small>${escapeHtml(church.denomination || 'No denomination')}</small>
+                    <strong>${escapeHtml(request.name)}</strong>
+                    <span>${escapeHtml(request.address || request.location_name || 'No address')}</span>
+                    <small>${escapeHtml(request.denomination || 'No denomination')}</small>
                 </td>
                 <td>
-                    <strong>${escapeHtml(church.pastor_or_admin_name || 'No contact')}</strong>
-                    <span>${escapeHtml(church.pastor_or_admin_email || '')}</span>
-                    <small>${escapeHtml(church.pastor_or_admin_phone || '')}</small>
+                    <strong>${escapeHtml(request.pastor_name || 'Not recorded')}</strong>
+                    <span>${escapeHtml(request.pastor_email || '')}</span>
+                    <small>${escapeHtml(request.pastor_phone || '')}</small>
                 </td>
-                <td>${statusBadge(church.approval_status || church.status)}<small>Public: ${church.public_visibility ? 'yes' : 'no'}</small></td>
-                <td>${subscriptionBadge(church)}</td>
-                <td><span>${escapeHtml(church.member_count || 0)} members</span><small>Created ${formatDate(church.createdAt)}</small></td>
+                <td>${statusBadge(request.status)}<small>${escapeHtml(request.review_notes || '')}</small></td>
+                <td><span>${formatDate(request.created_at)}</span><small>${escapeHtml(request.parish || '')}</small></td>
                 <td>
                     <div class="developer-action-row">
-                        <button class="developer-icon-btn" title="View Details" data-action="view-church" data-church='${escapeHtml(JSON.stringify(church))}'><i class="fas fa-eye"></i></button>
-                        ${church.record_type === 'church' ? `
-                            <button class="developer-icon-btn" title="Grant 1 free month" data-action="grant-subscription" data-id="${escapeHtml(church.placeId || church.id)}" data-months="1"><i class="fas fa-calendar-plus"></i></button>
-                            <button class="developer-icon-btn danger" title="Turn subscription off" data-action="clear-subscription" data-id="${escapeHtml(church.placeId || church.id)}"><i class="fas fa-lock"></i></button>
+                        <button class="developer-icon-btn" title="View request" data-action="view-request" data-request="${escapeAttrJson(request)}"><i class="fas fa-eye"></i></button>
+                        ${['submitted', 'under_review', 'needs_information'].includes(String(request.status || '').toLowerCase()) ? `
+                            <button class="developer-icon-btn" title="Approve church" data-action="approve-church" data-id="${escapeHtml(request.id)}"><i class="fas fa-check"></i></button>
+                            <button class="developer-icon-btn danger" title="Deny church" data-action="reject-church" data-id="${escapeHtml(request.id)}"><i class="fas fa-ban"></i></button>
                         ` : ''}
                     </div>
                 </td>
             </tr>
-        `), 'No churches found.');
+        `), 'No church registration requests found.');
     };
 
-    const loadMemberRequests = async () => {
-        setLoading('memberRequestList', 'Loading member requests');
-        const search = document.getElementById('memberRequestSearch')?.value || '';
-        const members = await rpc('developer_list_member_requests', { p_search: search || null });
+    const loadIssues = async () => {
+        setLoading('issueReportList', 'Loading issue reports');
+        const status = document.getElementById('issueStatusFilter')?.value || '';
+        const search = document.getElementById('issueSearchInput')?.value || '';
+        const issues = normalizeList(await rpc('developer_list_support_tickets', {
+            p_status: status || null,
+            p_search: search || null
+        }));
 
-        renderTable('memberRequestList', ['Member', 'Church', 'Status', 'Actions'], members.map((member) => `
+        renderTable('issueReportList', ['Issue', 'Reporter', 'Church', 'Status', 'Actions'], issues.map((issue) => `
             <tr>
                 <td>
-                    <strong>${escapeHtml(member.fullName || member.email)}</strong>
-                    <span>${escapeHtml(member.email)}</span>
-                    <small>${escapeHtml(member.phone || '')}</small>
+                    <strong>${escapeHtml(issue.summary)}</strong>
+                    <span>${escapeHtml(issue.issueType)} · ${escapeHtml(issue.appSection)}</span>
+                    <small>${escapeHtml(issue.ticketId)} · ${formatDate(issue.createdAt)}</small>
                 </td>
-                <td>
-                    <strong>${escapeHtml(member.church_name || member.placeName || member.placeId)}</strong>
-                    <span>${escapeHtml(member.placeId || '')}</span>
-                </td>
-                <td>${statusBadge(member.approvalStatus)}<small>${formatDate(member.joinDate)}</small></td>
+                <td><span>${escapeHtml(issue.reporterEmail)}</span></td>
+                <td><strong>${escapeHtml(issue.church_name || issue.churchId || 'No church')}</strong><span>${escapeHtml(issue.churchId || '')}</span></td>
+                <td>${statusBadge(issue.status)}<small>${escapeHtml(issue.impact || 'Medium')} impact</small></td>
                 <td>
                     <div class="developer-action-row">
-                        <button class="developer-icon-btn" title="Emergency Approve" data-action="approve-member" data-id="${escapeHtml(member.id)}"><i class="fas fa-check"></i></button>
+                        <button class="developer-icon-btn" title="View issue" data-action="view-issue" data-issue="${escapeAttrJson(issue)}"><i class="fas fa-eye"></i></button>
+                        <button class="developer-icon-btn" title="Acknowledge" data-action="update-issue" data-id="${escapeHtml(issue.id)}" data-status="acknowledged"><i class="fas fa-hand"></i></button>
+                        <button class="developer-icon-btn" title="Mark in review" data-action="update-issue" data-id="${escapeHtml(issue.id)}" data-status="in_review"><i class="fas fa-magnifying-glass"></i></button>
+                        <button class="developer-icon-btn" title="Resolve" data-action="update-issue" data-id="${escapeHtml(issue.id)}" data-status="resolved"><i class="fas fa-check"></i></button>
                     </div>
                 </td>
             </tr>
-        `), 'No pending member requests.');
+        `), 'No issue reports found.');
     };
 
     const loadUsers = async () => {
@@ -262,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const search = document.getElementById('userSearchInput')?.value || '';
         const users = await rpc('developer_search_users', { p_search: search || null, p_church_id: null });
 
-        renderTable('userSearchList', ['User', 'Church', 'Roles', 'State'], users.map((user) => `
+        renderTable('userSearchList', ['User', 'Church', 'Roles', 'State'], normalizeList(users).map((user) => `
             <tr>
                 <td>
                     <strong>${escapeHtml(user.fullName || user.email)}</strong>
@@ -270,7 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <small>${escapeHtml(user.isDeveloper ? 'Developer flag set' : '')}</small>
                 </td>
                 <td><strong>${escapeHtml(user.placeName || 'No church')}</strong><span>${escapeHtml(user.placeId || '')}</span></td>
-                <td><span>${escapeHtml((user.roles || []).join(', ') || 'No roles')}</span></td>
+                <td><span>${escapeHtml(normalizeList(user.roles).join(', ') || 'No roles')}</span></td>
                 <td>${statusBadge(user.approvalStatus)}<small>${escapeHtml(user.accountState || 'unknown')}</small></td>
             </tr>
         `), 'No users found.');
@@ -280,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setLoading('developerAccountList', 'Loading developer accounts');
         const developers = await rpc('developer_list_developer_accounts');
 
-        renderTable('developerAccountList', ['Email', 'Role', 'Status', 'Last Login', 'Actions'], developers.map((developer) => `
+        renderTable('developerAccountList', ['Email', 'Role', 'Status', 'Last Login', 'Actions'], normalizeList(developers).map((developer) => `
             <tr>
                 <td><strong>${escapeHtml(developer.email)}</strong><span>${escapeHtml(developer.user_id || 'Auth user not linked yet')}</span></td>
                 <td><span>${escapeHtml(developer.developer_role)}</span></td>
@@ -297,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setLoading('developerAuditList', 'Loading audit logs');
         const logs = await rpc('developer_get_audit_logs', { p_limit: 100 });
 
-        renderTable('developerAuditList', ['Action', 'Actor', 'Target', 'Details'], logs.map((log) => `
+        renderTable('developerAuditList', ['Action', 'Actor', 'Target', 'Details'], normalizeList(logs).map((log) => `
             <tr>
                 <td><strong>${escapeHtml(log.action)}</strong><span>${formatDate(log.created_at)}</span></td>
                 <td><span>${escapeHtml(log.actor_email || log.actor_user_id || 'Unknown')}</span></td>
@@ -307,12 +395,151 @@ document.addEventListener('DOMContentLoaded', () => {
         `), 'No developer audit events yet.');
     };
 
+    const renderChurchDetail = async (churchId) => {
+        state.selectedChurchId = churchId;
+        openModal(
+            'Church Details',
+            '<div class="developer-empty"><i class="fas fa-circle-notch fa-spin"></i><span>Loading church details...</span></div>'
+        );
+        const detail = await rpc('developer_get_church_detail', { p_church_id: churchId });
+        const church = detail.church || {};
+        const members = normalizeList(detail.members);
+        const resolvedChurchId = church.placeId || church.id || churchId;
+
+        const body = `
+            <div class="developer-detail-grid">
+                ${detailRow('Name', church.display_name || church.name)}
+                ${detailRow('Address', church.address)}
+                ${detailRow('Parish', church.parish)}
+                ${detailRow('Denomination', church.denomination_label || church.denomination)}
+                ${detailRow('Founded', church.founded_year)}
+                ${detailRow('Contact Email', church.contact_email)}
+                ${detailRow('Contact Phone', church.contact_phone)}
+                ${detailRow('Website', church.website_url)}
+                ${detailRow('Service Times', church.service_times_note)}
+                ${detailRow('Status', `${church.church_status || church.status || 'unknown'} · public ${church.public_visibility ? 'yes' : 'no'}`)}
+                <div class="developer-detail-item developer-detail-full">
+                    <strong>About</strong>
+                    <span>${escapeHtml(church.about || 'Not recorded')}</span>
+                </div>
+            </div>
+            <div class="developer-modal-section">
+                <h3>Members</h3>
+                ${members.length ? `
+                    <table class="developer-table developer-modal-table">
+                        <thead>
+                            <tr><th>Member</th><th>Roles</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                            ${members.map((member) => `
+                                <tr>
+                                    <td>
+                                        <strong>${escapeHtml(member.full_name || member.email || 'Member')}</strong>
+                                        <span>${escapeHtml(member.email || '')}</span>
+                                    </td>
+                                    <td><span>${escapeHtml(normalizeList(member.roles).join(', ') || 'Member')}</span></td>
+                                    <td>${statusBadge(member.membership_status)}<small>${escapeHtml(member.account_state || '')}</small></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                ` : '<div class="developer-empty"><i class="fas fa-users"></i><span>No members found for this church.</span></div>'}
+            </div>
+        `;
+
+        const actions = `
+            <button class="btn btn-secondary" data-action="prompt-setup" data-id="${escapeHtml(resolvedChurchId)}"><i class="fas fa-paper-plane"></i> Prompt Setup</button>
+            <button class="btn btn-primary" data-action="grant-subscription" data-id="${escapeHtml(resolvedChurchId)}" data-months="1">Free 1 Month</button>
+            <button class="btn btn-secondary" data-action="grant-subscription" data-id="${escapeHtml(resolvedChurchId)}" data-months="3">Free 3 Months</button>
+            <button class="btn btn-secondary danger" data-action="clear-subscription" data-id="${escapeHtml(resolvedChurchId)}">Turn Subscription Off</button>
+            <button class="btn btn-secondary danger" data-action="suspend-church" data-id="${escapeHtml(resolvedChurchId)}">Suspend</button>
+        `;
+
+        openModal(church.display_name || church.name || 'Church Details', body, actions);
+    };
+
+    const renderRequestDetail = (request) => {
+        state.selectedChurchId = null;
+        const canReview = ['submitted', 'under_review', 'needs_information'].includes(String(request.status || '').toLowerCase());
+        openModal(
+            request.name || 'Church Request',
+            `
+                <div class="developer-detail-grid">
+                    ${detailRow('Church', request.name)}
+                    ${detailRow('Location', request.location_name)}
+                    ${detailRow('Address', request.address)}
+                    ${detailRow('Parish', request.parish)}
+                    ${detailRow('Denomination', request.denomination)}
+                    ${detailRow('Pastor/Admin', request.pastor_name)}
+                    ${detailRow('Email', request.pastor_email)}
+                    ${detailRow('Phone', request.pastor_phone)}
+                    ${detailRow('Status', request.status)}
+                    ${detailRow('Submitted', formatDate(request.created_at))}
+                    <div class="developer-detail-item developer-detail-full">
+                        <strong>Applicant Note</strong>
+                        <span>${escapeHtml(request.applicant_note || 'Not recorded')}</span>
+                    </div>
+                    <div class="developer-detail-item developer-detail-full">
+                        <strong>Review Notes</strong>
+                        <span>${escapeHtml(request.review_notes || 'Not recorded')}</span>
+                    </div>
+                </div>
+            `,
+            canReview ? `
+                <button class="btn btn-primary" data-action="approve-church" data-id="${escapeHtml(request.id)}">Approve Church</button>
+                <button class="btn btn-secondary danger" data-action="reject-church" data-id="${escapeHtml(request.id)}">Deny Request</button>
+            ` : ''
+        );
+    };
+
+    const renderIssueDetail = (issue) => {
+        state.selectedChurchId = null;
+        const attachments = normalizeList(issue.attachmentUrls);
+        openModal(
+            issue.summary || 'Issue Report',
+            `
+                <div class="developer-detail-grid">
+                    ${detailRow('Ticket', issue.ticketId)}
+                    ${detailRow('Reporter', issue.reporterEmail)}
+                    ${detailRow('Church', issue.church_name || issue.churchId)}
+                    ${detailRow('Type', issue.issueType)}
+                    ${detailRow('App Section', issue.appSection)}
+                    ${detailRow('Impact', issue.impact)}
+                    ${detailRow('Status', issue.status)}
+                    ${detailRow('Submitted', formatDate(issue.createdAt))}
+                    <div class="developer-detail-item developer-detail-full">
+                        <strong>Description</strong>
+                        <span>${escapeHtml(issue.description || 'Not recorded')}</span>
+                    </div>
+                    <div class="developer-detail-item developer-detail-full">
+                        <strong>Developer Notes</strong>
+                        <span>${escapeHtml(issue.developer_notes || 'Not recorded')}</span>
+                    </div>
+                    <div class="developer-detail-item developer-detail-full">
+                        <strong>Attachments</strong>
+                        <span>${attachments.length ? attachments.map((url) => `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">Open attachment</a>`).join(' ') : 'None'}</span>
+                    </div>
+                    <div class="developer-detail-item developer-detail-full">
+                        <strong>Device Info</strong>
+                        <code>${escapeHtml(JSON.stringify(issue.deviceInfo || {}, null, 2))}</code>
+                    </div>
+                </div>
+            `,
+            `
+                <button class="btn btn-secondary" data-action="update-issue" data-id="${escapeHtml(issue.id)}" data-status="acknowledged">Acknowledge</button>
+                <button class="btn btn-secondary" data-action="update-issue" data-id="${escapeHtml(issue.id)}" data-status="in_review">Mark In Review</button>
+                <button class="btn btn-primary" data-action="update-issue" data-id="${escapeHtml(issue.id)}" data-status="resolved">Resolve</button>
+            `
+        );
+    };
+
     const loadActiveView = async () => {
         showMessage('developerPortalMessage', '');
         try {
             if (state.activeView === 'overview') await loadOverview();
             if (state.activeView === 'churches') await loadChurches();
-            if (state.activeView === 'members') await loadMemberRequests();
+            if (state.activeView === 'requests') await loadChurchRequests();
+            if (state.activeView === 'issues') await loadIssues();
             if (state.activeView === 'users') await loadUsers();
             if (state.activeView === 'developers') await loadDeveloperAccounts();
             if (state.activeView === 'audit') await loadAudit();
@@ -332,6 +559,13 @@ document.addEventListener('DOMContentLoaded', () => {
         loadActiveView();
     };
 
+    const refreshContext = async () => {
+        if (state.activeView === 'overview') await loadOverview();
+        if (state.activeView === 'churches') await loadChurches();
+        if (state.activeView === 'requests') await loadChurchRequests();
+        if (state.activeView === 'issues') await loadIssues();
+    };
+
     const handleAction = async (button) => {
         const action = button.dataset.action;
         const id = button.dataset.id;
@@ -340,71 +574,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             if (action === 'view-church') {
-                const churchStr = button.dataset.church;
-                if (churchStr) {
-                    const church = JSON.parse(churchStr);
-                    document.getElementById('churchDetailModal').style.display = 'flex';
-                    document.getElementById('churchDetailTitle').textContent = church.name;
-                    
-                    document.getElementById('churchDetailBody').innerHTML = `
-                        <div class="developer-detail-grid">
-                            <div class="developer-detail-item"><strong>Location Name:</strong> <span>${escapeHtml(church.location_name || church.name || 'N/A')}</span></div>
-                            <div class="developer-detail-item"><strong>Address:</strong> <span>${escapeHtml(church.address || 'N/A')}</span></div>
-                            <div class="developer-detail-item"><strong>Parish:</strong> <span>${escapeHtml(church.parish || 'N/A')}</span></div>
-                            <div class="developer-detail-item"><strong>Denomination:</strong> <span>${escapeHtml(church.denomination || 'N/A')}</span></div>
-                            <div class="developer-detail-item"><strong>Contact Name:</strong> <span>${escapeHtml(church.pastor_or_admin_name || church.pastor_name || 'N/A')}</span></div>
-                            <div class="developer-detail-item"><strong>Contact Email:</strong> <span>${escapeHtml(church.pastor_or_admin_email || church.pastor_email || 'N/A')}</span></div>
-                            <div class="developer-detail-item" style="grid-column: 1 / -1;"><strong>Applicant Note:</strong> <span>${escapeHtml(church.applicant_note || 'None')}</span></div>
-                            <div class="developer-detail-item"><strong>Status:</strong> <span>${statusBadge(church.approval_status || church.status)}</span></div>
-                            <div class="developer-detail-item"><strong>Subscription:</strong> <span>${subscriptionBadge(church)}</span></div>
-                        </div>
-                    `;
-                    
-                    let actionsHtml = '';
-                    const status = (church.approval_status || church.status || '').toLowerCase();
-                    if (status === 'pending' || status === 'submitted' || status === 'under_review') {
-                        actionsHtml = `
-                            <button class="btn btn-primary" data-action="approve-church" data-id="${escapeHtml(church.placeId || church.id)}">Approve</button>
-                            <button class="btn btn-secondary danger" data-action="reject-church" data-id="${escapeHtml(church.placeId || church.id)}">Reject</button>
-                        `;
-                    } else if (status === 'approved') {
-                        actionsHtml = `
-                            <button class="btn btn-primary" data-action="grant-subscription" data-id="${escapeHtml(church.placeId || church.id)}" data-months="1">Free 1 Month</button>
-                            <button class="btn btn-secondary" data-action="grant-subscription" data-id="${escapeHtml(church.placeId || church.id)}" data-months="3">Free 3 Months</button>
-                            <button class="btn btn-secondary danger" data-action="clear-subscription" data-id="${escapeHtml(church.placeId || church.id)}">Turn Subscription Off</button>
-                            <button class="btn btn-secondary danger" data-action="suspend-church" data-id="${escapeHtml(church.placeId || church.id)}">Suspend</button>
-                        `;
-                    }
-                    document.getElementById('churchDetailActions').innerHTML = actionsHtml;
-                }
+                await renderChurchDetail(id);
                 return;
             }
-            
-            // Close modal after approving, rejecting, suspending
-            if (['approve-church', 'reject-church', 'suspend-church'].includes(action)) {
-                document.getElementById('churchDetailModal').style.display = 'none';
+            if (action === 'view-request') {
+                renderRequestDetail(JSON.parse(button.dataset.request || '{}'));
+                return;
             }
-
-            if (['grant-subscription', 'clear-subscription'].includes(action)) {
-                document.getElementById('churchDetailModal').style.display = 'none';
+            if (action === 'view-issue') {
+                renderIssueDetail(JSON.parse(button.dataset.issue || '{}'));
+                return;
             }
-
             if (action === 'approve-church') {
                 await rpc('developer_approve_church_registration', { p_church_id: id });
-                showMessage('developerPortalMessage', 'Church approved and added to the public directory.', 'success');
-                await loadChurches();
+                closeModal();
+                showMessage('developerPortalMessage', 'Church registration approved and the applicant was queued for email notification.', 'success');
+                await refreshContext();
             }
             if (action === 'reject-church') {
-                const reason = window.prompt('Reason for rejecting this church registration?') || '';
+                const reason = window.prompt('Reason for denying this church registration?') || '';
                 await rpc('developer_reject_church_registration', { p_church_id: id, p_reason: reason });
-                showMessage('developerPortalMessage', 'Church registration rejected.', 'success');
-                await loadChurches();
+                closeModal();
+                showMessage('developerPortalMessage', 'Church registration denied and the applicant was queued for email notification.', 'success');
+                await refreshContext();
             }
             if (action === 'suspend-church') {
                 const reason = window.prompt('Reason for suspending this church?') || '';
                 await rpc('developer_suspend_church', { p_church_id: id, p_reason: reason });
+                closeModal();
                 showMessage('developerPortalMessage', 'Church suspended and hidden from public search.', 'success');
-                await loadChurches();
+                await refreshContext();
+            }
+            if (action === 'prompt-setup') {
+                await rpc('developer_send_church_setup_prompt', { p_church_id: id, p_message: null });
+                showMessage('developerPortalMessage', 'Setup prompt queued for the church contact.', 'success');
+                await refreshContext();
             }
             if (action === 'grant-subscription') {
                 const months = Number(button.dataset.months || '1');
@@ -416,8 +620,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     p_notes: `Developer manual free grant: ${months} month(s)`
                 });
                 showMessage('developerPortalMessage', `Free subscription granted for ${months} month(s).`, 'success');
-                await loadChurches();
-                await loadOverview();
+                if (state.selectedChurchId) await renderChurchDetail(state.selectedChurchId);
+                await refreshContext();
             }
             if (action === 'clear-subscription') {
                 const reason = window.prompt('Reason for turning this church subscription off?') || '';
@@ -426,15 +630,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     p_reason: reason || 'Developer manual disable'
                 });
                 showMessage('developerPortalMessage', 'Church subscription turned off. Users keep feed access only.', 'success');
-                await loadChurches();
-                await loadOverview();
+                if (state.selectedChurchId) await renderChurchDetail(state.selectedChurchId);
+                await refreshContext();
             }
-            if (action === 'approve-member') {
-                const reason = window.prompt('WARNING: This is an emergency override. Enter the reason for approving this member directly:') || '';
-                if (!reason) throw new Error('Emergency approval requires a reason.');
-                await rpc('developer_approve_member_request', { p_user_id: id, p_reason: reason, p_emergency_override: true });
-                showMessage('developerPortalMessage', 'Member request approved (Emergency Override).', 'success');
-                await loadMemberRequests();
+            if (action === 'update-issue') {
+                const nextStatus = button.dataset.status;
+                const note = window.prompt('Optional note for the user and audit log:') || '';
+                await rpc('developer_update_support_ticket', {
+                    p_ticket_id: id,
+                    p_status: nextStatus,
+                    p_note: note
+                });
+                closeModal();
+                showMessage('developerPortalMessage', `Issue marked ${nextStatus.replaceAll('_', ' ')}. Reporter update was queued by email.`, 'success');
+                await refreshContext();
             }
             if (action === 'remove-developer') {
                 if (!window.confirm(`Disable developer access for ${email}?`)) return;
@@ -462,11 +671,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('click', (event) => {
+        const closeButton = event.target.closest('[data-close-modal]');
+        if (closeButton) closeModal();
+
         const actionButton = event.target.closest('[data-action]');
         if (actionButton) handleAction(actionButton);
 
         const refreshButton = event.target.closest('[data-refresh]');
         if (refreshButton) loadActiveView();
+    });
+
+    document.getElementById('churchDetailModal')?.addEventListener('click', (event) => {
+        if (event.target.id === 'churchDetailModal') closeModal();
     });
 
     document.getElementById('developerSignOutBtn')?.addEventListener('click', async () => {
@@ -476,7 +692,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('churchStatusFilter')?.addEventListener('change', loadChurches);
     document.getElementById('churchSearchFilter')?.addEventListener('input', debounce(loadChurches));
-    document.getElementById('memberRequestSearch')?.addEventListener('input', debounce(loadMemberRequests));
+    document.getElementById('churchRequestStatusFilter')?.addEventListener('change', loadChurchRequests);
+    document.getElementById('churchRequestSearch')?.addEventListener('input', debounce(loadChurchRequests));
+    document.getElementById('issueStatusFilter')?.addEventListener('change', loadIssues);
+    document.getElementById('issueSearchInput')?.addEventListener('input', debounce(loadIssues));
     document.getElementById('userSearchInput')?.addEventListener('input', debounce(loadUsers));
 
     document.getElementById('developerAccountForm')?.addEventListener('submit', async (event) => {

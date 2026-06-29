@@ -20,7 +20,8 @@
         <nav class="developer-nav" aria-label="Developer portal">
             <button class="developer-nav-btn active" data-view="overview"><i class="fas fa-chart-line"></i><span>Overview</span></button>
             <button class="developer-nav-btn" data-view="churches"><i class="fas fa-church"></i><span>Churches</span></button>
-            <button class="developer-nav-btn" data-view="members"><i class="fas fa-user-check"></i><span>Members</span></button>
+            <button class="developer-nav-btn" data-view="requests"><i class="fas fa-clipboard-check"></i><span>Church Requests</span></button>
+            <button class="developer-nav-btn" data-view="issues"><i class="fas fa-bug"></i><span>Issues</span></button>
             <button class="developer-nav-btn" data-view="users"><i class="fas fa-users"></i><span>Users</span></button>
             <button class="developer-nav-btn" data-view="developers"><i class="fas fa-user-shield"></i><span>Developers</span></button>
             <button class="developer-nav-btn" data-view="audit"><i class="fas fa-clipboard-list"></i><span>Audit</span></button>
@@ -67,7 +68,7 @@
             <div class="developer-section-heading">
                 <div>
                     <h2>Church Management</h2>
-                    <p>Approve registrations, suspend unsafe records, and keep the public directory clean.</p>
+                    <p>Open a church to review its details, members, setup gaps, and subscription state.</p>
                 </div>
                 <div class="developer-filters">
                     <select id="churchStatusFilter">
@@ -85,15 +86,47 @@
             <div id="churchList" class="developer-table-shell"></div>
         </section>
 
-        <section class="developer-view" id="view-members">
+        <section class="developer-view" id="view-requests">
             <div class="developer-section-heading">
                 <div>
-                    <h2>Pending Member Requests</h2>
-                    <p>Platform support view for membership requests that need intervention.</p>
+                    <h2>Church Registration Requests</h2>
+                    <p>Review people who are trying to register churches. Member approvals stay with church admins.</p>
                 </div>
-                <input type="search" id="memberRequestSearch" placeholder="Search requests">
+                <div class="developer-filters">
+                    <select id="churchRequestStatusFilter">
+                        <option value="pending">Pending review</option>
+                        <option value="">All statuses</option>
+                        <option value="submitted">Submitted</option>
+                        <option value="under_review">Under review</option>
+                        <option value="needs_information">Needs information</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                    <input type="search" id="churchRequestSearch" placeholder="Search church requests">
+                </div>
             </div>
-            <div id="memberRequestList" class="developer-table-shell"></div>
+            <div id="churchRequestList" class="developer-table-shell"></div>
+        </section>
+
+        <section class="developer-view" id="view-issues">
+            <div class="developer-section-heading">
+                <div>
+                    <h2>Issue Reports</h2>
+                    <p>App functionality reports submitted by users for developer review and resolution.</p>
+                </div>
+                <div class="developer-filters">
+                    <select id="issueStatusFilter">
+                        <option value="">All statuses</option>
+                        <option value="open">Open</option>
+                        <option value="acknowledged">Acknowledged</option>
+                        <option value="in_review">In review</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                    <input type="search" id="issueSearchInput" placeholder="Search issues">
+                </div>
+            </div>
+            <div id="issueReportList" class="developer-table-shell"></div>
         </section>
 
         <section class="developer-view" id="view-users">
@@ -151,7 +184,7 @@
         <div class="developer-modal-content">
             <header class="developer-modal-header">
                 <h2 id="churchDetailTitle">Church Details</h2>
-                <button class="developer-icon-btn" onclick="document.getElementById('churchDetailModal').style.display='none'"><i class="fas fa-times"></i></button>
+                <button class="developer-icon-btn" data-close-modal="true"><i class="fas fa-times"></i></button>
             </header>
             <div class="developer-modal-body" id="churchDetailBody">
                 <div class="developer-empty"><i class="fas fa-circle-notch fa-spin"></i><span>Loading details...</span></div>
@@ -162,7 +195,7 @@
         </div>
     </div>
 
-    <script src="../js/supabase-config.js?v=20260629-2"></script>
-    <script src="../js/developer-portal.js?v=20260629-2"></script>
+    <script src="../js/supabase-config.js?v=20260629-3"></script>
+    <script src="../js/developer-portal.js?v=20260629-3"></script>
 </body>
 </html>

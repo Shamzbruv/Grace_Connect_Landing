@@ -692,12 +692,14 @@ You can continue, but our developer review team may ask for more verification. C
 
                 searchResults.innerHTML = '';
 
-                if (churches.length === 0) {
+                const churchResults = Array.isArray(churches) ? churches : [];
+
+                if (churchResults.length === 0) {
                     searchMessage.style.display = 'flex';
                     return;
                 }
 
-                churches.forEach(church => {
+                churchResults.forEach(church => {
                     const item = document.createElement('div');
                     item.className = 'search-item';
                     const strong = document.createElement('strong');
