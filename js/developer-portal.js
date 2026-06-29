@@ -140,6 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ['Approved Churches', data.approved_churches, 'fa-circle-check'],
             ['Pending Churches', data.pending_churches, 'fa-hourglass-half'],
             ['Suspended Churches', data.suspended_churches, 'fa-ban'],
+            ['Subscribed Churches', data.subscribed_churches, 'fa-money-check-dollar'],
+            ['No Active Subscription', data.unsubscribed_churches, 'fa-lock'],
             ['Developer Accounts', data.developer_accounts, 'fa-user-shield']
         ];
 
@@ -179,13 +181,29 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<span class="developer-status developer-status-${escapeHtml(normalized)}">${escapeHtml(normalized)}</span>`;
     };
 
+    const subscriptionBadge = (church) => {
+        if (church.subscription_active) {
+            const until = church.subscription_active_until
+                ? `until ${formatDate(church.subscription_active_until)}`
+                : 'indefinite';
+            return `
+                <span class="developer-status developer-status-active">active</span>
+                <small>${escapeHtml(church.subscription_plan_code || 'manual')} · ${escapeHtml(until)}</small>
+            `;
+        }
+        return `
+            <span class="developer-status developer-status-inactive">inactive</span>
+            <small>Feed only</small>
+        `;
+    };
+
     const loadChurches = async () => {
         setLoading('churchList', 'Loading churches');
         const status = document.getElementById('churchStatusFilter')?.value || '';
         const search = document.getElementById('churchSearchFilter')?.value || '';
         const churches = await rpc('developer_list_churches', { p_status: status || null, p_search: search || null });
 
-        renderTable('churchList', ['Church', 'Contact', 'Status', 'Setup', 'Actions'], churches.map((church) => `
+        renderTable('churchList', ['Church', 'Contact', 'Status', 'Subscription', 'Setup', 'Actions'], churches.map((church) => `
             <tr>
                 <td>
                     <strong>${escapeHtml(church.name)}</strong>
@@ -198,10 +216,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     <small>${escapeHtml(church.pastor_or_admin_phone || '')}</small>
                 </td>
                 <td>${statusBadge(church.approval_status || church.status)}<small>Public: ${church.public_visibility ? 'yes' : 'no'}</small></td>
+                <td>${subscriptionBadge(church)}</td>
                 <td><span>${escapeHtml(church.member_count || 0)} members</span><small>Created ${formatDate(church.createdAt)}</small></td>
                 <td>
                     <div class="developer-action-row">
                         <button class="developer-icon-btn" title="View Details" data-action="view-church" data-church='${escapeHtml(JSON.stringify(church))}'><i class="fas fa-eye"></i></button>
+                        ${church.record_type === 'church' ? `
+                            <button class="developer-icon-btn" title="Grant 1 free month" data-action="grant-subscription" data-id="${escapeHtml(church.placeId || church.id)}" data-months="1"><i class="fas fa-calendar-plus"></i></button>
+                            <button class="developer-icon-btn danger" title="Turn subscription off" data-action="clear-subscription" data-id="${escapeHtml(church.placeId || church.id)}"><i class="fas fa-lock"></i></button>
+                        ` : ''}
                     </div>
                 </td>
             </tr>
@@ -333,6 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="developer-detail-item"><strong>Contact Email:</strong> <span>${escapeHtml(church.pastor_or_admin_email || church.pastor_email || 'N/A')}</span></div>
                             <div class="developer-detail-item" style="grid-column: 1 / -1;"><strong>Applicant Note:</strong> <span>${escapeHtml(church.applicant_note || 'None')}</span></div>
                             <div class="developer-detail-item"><strong>Status:</strong> <span>${statusBadge(church.approval_status || church.status)}</span></div>
+                            <div class="developer-detail-item"><strong>Subscription:</strong> <span>${subscriptionBadge(church)}</span></div>
                         </div>
                     `;
                     
@@ -345,6 +369,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         `;
                     } else if (status === 'approved') {
                         actionsHtml = `
+                            <button class="btn btn-primary" data-action="grant-subscription" data-id="${escapeHtml(church.placeId || church.id)}" data-months="1">Free 1 Month</button>
+                            <button class="btn btn-secondary" data-action="grant-subscription" data-id="${escapeHtml(church.placeId || church.id)}" data-months="3">Free 3 Months</button>
+                            <button class="btn btn-secondary danger" data-action="clear-subscription" data-id="${escapeHtml(church.placeId || church.id)}">Turn Subscription Off</button>
                             <button class="btn btn-secondary danger" data-action="suspend-church" data-id="${escapeHtml(church.placeId || church.id)}">Suspend</button>
                         `;
                     }
@@ -355,6 +382,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Close modal after approving, rejecting, suspending
             if (['approve-church', 'reject-church', 'suspend-church'].includes(action)) {
+                document.getElementById('churchDetailModal').style.display = 'none';
+            }
+
+            if (['grant-subscription', 'clear-subscription'].includes(action)) {
                 document.getElementById('churchDetailModal').style.display = 'none';
             }
 
@@ -374,6 +405,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 await rpc('developer_suspend_church', { p_church_id: id, p_reason: reason });
                 showMessage('developerPortalMessage', 'Church suspended and hidden from public search.', 'success');
                 await loadChurches();
+            }
+            if (action === 'grant-subscription') {
+                const months = Number(button.dataset.months || '1');
+                await rpc('developer_set_church_subscription', {
+                    p_church_id: id,
+                    p_status: 'active',
+                    p_plan_code: 'manual_free',
+                    p_months: months,
+                    p_notes: `Developer manual free grant: ${months} month(s)`
+                });
+                showMessage('developerPortalMessage', `Free subscription granted for ${months} month(s).`, 'success');
+                await loadChurches();
+                await loadOverview();
+            }
+            if (action === 'clear-subscription') {
+                const reason = window.prompt('Reason for turning this church subscription off?') || '';
+                await rpc('developer_clear_church_subscription', {
+                    p_church_id: id,
+                    p_reason: reason || 'Developer manual disable'
+                });
+                showMessage('developerPortalMessage', 'Church subscription turned off. Users keep feed access only.', 'success');
+                await loadChurches();
+                await loadOverview();
             }
             if (action === 'approve-member') {
                 const reason = window.prompt('WARNING: This is an emergency override. Enter the reason for approving this member directly:') || '';
