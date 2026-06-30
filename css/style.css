@@ -1689,6 +1689,68 @@ h1, h2, h3, h4, h5 {
     border-radius: var(--radius-sm);
 }
 
+.developer-access-form {
+    display: grid;
+    gap: 16px;
+}
+
+.developer-wide-control,
+.developer-form-field input {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid #d6dde6;
+    border-radius: var(--radius-sm);
+    background: white;
+    color: #1f2937;
+    padding: 10px 12px;
+    font: 600 0.92rem var(--font-body);
+}
+
+.developer-form-field {
+    display: grid;
+    gap: 7px;
+    margin-top: 12px;
+}
+
+.developer-form-field span {
+    color: #475569;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.developer-check-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 8px;
+}
+
+.developer-check-grid-wide {
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.developer-check-option {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #edf1f5;
+    border-radius: var(--radius-sm);
+    background: #f8fafc;
+    color: #334155;
+    padding: 9px 10px;
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+.developer-check-option input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--color-navy);
+    flex: 0 0 auto;
+}
+
 @media (max-width: 768px) {
     .legal-wrapper h1 { font-size: 2.2rem; }
     .legal-table { display: block; overflow-x: auto; }

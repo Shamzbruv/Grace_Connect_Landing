@@ -32,6 +32,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const normalizeList = (value) => Array.isArray(value) ? value : [];
 
+    const roleOptions = [
+        'Member',
+        'Pastor',
+        'Senior Pastor',
+        'Assistant Pastor',
+        'Acting Pastor',
+        'Admin',
+        'Church Admin',
+        'Church Secretary',
+        'Secretary',
+        'Treasurer',
+        'Financial Secretary',
+        'Sunday School Superintendent',
+        'Sunday School Teacher',
+        'Worship Leader',
+        'Media Team',
+        'Music, Media & Technical Team Live Stream Technician',
+        'Deacon',
+        'Usher',
+        'Head Usher',
+        'Prayer Warrior',
+        'Intercessor',
+        'Counselor'
+    ];
+
+    const privilegeOptions = [
+        ['approveMembers', 'Approve members'],
+        ['manageChurchSettings', 'Church settings'],
+        ['manageRoles', 'Roles'],
+        ['viewOperationalAnalytics', 'Analytics'],
+        ['viewFinanceDashboard', 'Finance dashboard'],
+        ['manageFinances', 'Manage finances'],
+        ['approveFinanceReports', 'Finance reports'],
+        ['createAnnouncement', 'Announcements'],
+        ['sendPushNotification', 'Push notifications'],
+        ['pinPost', 'Pin posts'],
+        ['moderateCommunity', 'Moderate community'],
+        ['createEvents', 'Events'],
+        ['manageSundaySchool', 'Sunday school'],
+        ['manageLivestream', 'Livestream'],
+        ['manageWorship', 'Worship'],
+        ['managePrayerRequests', 'Prayer requests'],
+        ['assignCareRequests', 'Care requests'],
+        ['manualCheckIn', 'Manual check-in'],
+        ['viewAttendanceInsights', 'Attendance insights'],
+        ['viewPriorityList', 'View priority list'],
+        ['managePriorityList', 'Manage priority list'],
+        ['manageSchedule', 'Schedule']
+    ];
+
+    const knownRoleSet = new Set(roleOptions);
+
+    const previewList = (value, fallback = 'None') => {
+        const list = normalizeList(value).filter(Boolean);
+        if (!list.length) return fallback;
+        if (list.length <= 3) return list.join(', ');
+        return `${list.slice(0, 3).join(', ')} +${list.length - 3} more`;
+    };
+
+    const userPayload = (user) => ({
+        id: user.id || user.user_id || user.uid || '',
+        uid: user.uid || '',
+        email: user.email || '',
+        fullName: user.fullName || user.full_name || '',
+        placeId: user.placeId || user.place_id || user.pendingChurchId || '',
+        placeName: user.placeName || user.place_name || user.pendingChurchName || '',
+        roles: normalizeList(user.roles),
+        appPrivileges: normalizeList(user.appPrivileges || user.app_privileges),
+        accountState: user.accountState || user.account_state || '',
+        approvalStatus: user.approvalStatus || user.approval_status || user.membership_status || '',
+        pendingMembershipId: user.pendingMembershipId || user.pending_membership_id || '',
+        pendingChurchName: user.pendingChurchName || user.pending_church_name || '',
+        isDeveloper: Boolean(user.isDeveloper || user.is_developer)
+    });
+
     const showMessage = (id, message, type = 'error') => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -183,6 +258,85 @@ document.addEventListener('DOMContentLoaded', () => {
             <span>${escapeHtml(value || 'Not recorded')}</span>
         </div>
     `;
+
+    const renderUserAccessModal = (rawUser) => {
+        const user = userPayload(rawUser);
+        const currentRoles = normalizeList(user.roles);
+        const currentPrivileges = normalizeList(user.appPrivileges);
+        const customRoles = currentRoles.filter((role) => !knownRoleSet.has(role));
+        const displayName = user.fullName || user.email || 'User account';
+
+        const roleChecks = roleOptions.map((role) => `
+            <label class="developer-check-option">
+                <input type="checkbox" name="roles" value="${escapeHtml(role)}" ${currentRoles.includes(role) ? 'checked' : ''}>
+                <span>${escapeHtml(role)}</span>
+            </label>
+        `).join('');
+
+        const privilegeChecks = privilegeOptions.map(([value, label]) => `
+            <label class="developer-check-option">
+                <input type="checkbox" name="privileges" value="${escapeHtml(value)}" ${currentPrivileges.includes(value) ? 'checked' : ''}>
+                <span>${escapeHtml(label)}</span>
+            </label>
+        `).join('');
+
+        openModal(
+            `Access: ${displayName}`,
+            `
+                <form id="userAccessForm" class="developer-access-form">
+                    <div class="developer-detail-grid">
+                        ${detailRow('Email', user.email)}
+                        ${detailRow('Church', user.placeName || user.pendingChurchName || 'No church')}
+                        ${detailRow('Current State', user.accountState || user.approvalStatus || 'unknown')}
+                        ${detailRow('User ID', user.id)}
+                    </div>
+                    <div class="developer-modal-section">
+                        <h3>Account State</h3>
+                        <select name="accountState" class="developer-wide-control">
+                            ${['active', 'pending', 'declined', 'removed', 'suspended', 'disabled', 'deletion_requested'].map((status) => `
+                                <option value="${status}" ${String(user.accountState || '').toLowerCase() === status ? 'selected' : ''}>${status.replaceAll('_', ' ')}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    <div class="developer-modal-section">
+                        <h3>Roles</h3>
+                        <div class="developer-check-grid">${roleChecks}</div>
+                        <label class="developer-form-field">
+                            <span>Additional roles</span>
+                            <input type="text" name="customRoles" value="${escapeHtml(customRoles.join(', '))}" placeholder="Comma-separated custom roles">
+                        </label>
+                    </div>
+                    <div class="developer-modal-section">
+                        <h3>App Privileges</h3>
+                        <div class="developer-check-grid developer-check-grid-wide">${privilegeChecks}</div>
+                    </div>
+                </form>
+            `,
+            `
+                <button class="btn btn-secondary" data-close-modal="true">Cancel</button>
+                <button class="btn btn-primary" data-action="save-user-access" data-id="${escapeHtml(user.id)}"><i class="fas fa-floppy-disk"></i> Save Access</button>
+            `
+        );
+    };
+
+    const collectUserAccessForm = () => {
+        const form = document.getElementById('userAccessForm');
+        if (!form) throw new Error('Access form is not available.');
+
+        const roles = Array.from(form.querySelectorAll('input[name="roles"]:checked')).map((input) => input.value);
+        const customRoles = (form.querySelector('[name="customRoles"]')?.value || '')
+            .split(',')
+            .map((role) => role.trim())
+            .filter(Boolean);
+        const privileges = Array.from(form.querySelectorAll('input[name="privileges"]:checked')).map((input) => input.value);
+        const accountState = form.querySelector('[name="accountState"]')?.value || 'active';
+
+        return {
+            roles: Array.from(new Set([...roles, ...customRoles])).filter(Boolean),
+            privileges,
+            accountState
+        };
+    };
 
     const loadOverview = async () => {
         setLoading('dashboardStats', 'Loading dashboard');
@@ -350,18 +504,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const search = document.getElementById('userSearchInput')?.value || '';
         const users = await rpc('developer_search_users', { p_search: search || null, p_church_id: null });
 
-        renderTable('userSearchList', ['User', 'Church', 'Roles', 'State'], normalizeList(users).map((user) => `
-            <tr>
-                <td>
-                    <strong>${escapeHtml(user.fullName || user.email)}</strong>
-                    <span>${escapeHtml(user.email)}</span>
-                    <small>${escapeHtml(user.isDeveloper ? 'Developer flag set' : '')}</small>
-                </td>
-                <td><strong>${escapeHtml(user.placeName || 'No church')}</strong><span>${escapeHtml(user.placeId || '')}</span></td>
-                <td><span>${escapeHtml(normalizeList(user.roles).join(', ') || 'No roles')}</span></td>
-                <td>${statusBadge(user.approvalStatus)}<small>${escapeHtml(user.accountState || 'unknown')}</small></td>
-            </tr>
-        `), 'No users found.');
+        renderTable('userSearchList', ['User', 'Church', 'Roles', 'Privileges', 'State', 'Actions'], normalizeList(users).map((record) => {
+            const user = userPayload(record);
+            return `
+                <tr>
+                    <td>
+                        <strong>${escapeHtml(user.fullName || user.email || 'Unnamed user')}</strong>
+                        <span>${escapeHtml(user.email)}</span>
+                        <small>${escapeHtml(user.isDeveloper ? 'Developer flag set' : user.id)}</small>
+                    </td>
+                    <td>
+                        <strong>${escapeHtml(user.placeName || user.pendingChurchName || 'No church')}</strong>
+                        <span>${escapeHtml(user.placeId || '')}</span>
+                        ${user.pendingMembershipId ? '<small>Pending membership request</small>' : ''}
+                    </td>
+                    <td><span>${escapeHtml(previewList(user.roles, 'No roles'))}</span></td>
+                    <td><span>${escapeHtml(previewList(user.appPrivileges, 'No extra privileges'))}</span></td>
+                    <td>${statusBadge(user.approvalStatus || user.accountState)}<small>${escapeHtml(user.accountState || 'unknown')}</small></td>
+                    <td>
+                        <div class="developer-action-row">
+                            ${user.pendingMembershipId ? `<button class="developer-icon-btn" title="Approve member" data-action="approve-member" data-id="${escapeHtml(user.pendingMembershipId)}"><i class="fas fa-user-check"></i></button>` : ''}
+                            <button class="developer-icon-btn" title="Change roles and privileges" data-action="edit-user-access" data-user="${escapeAttrJson(user)}"><i class="fas fa-user-gear"></i></button>
+                            <button class="developer-icon-btn danger" title="Delete account from Supabase" data-action="delete-user" data-id="${escapeHtml(user.id)}" data-email="${escapeHtml(user.email)}"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }), 'No users found.');
     };
 
     const loadDeveloperAccounts = async () => {
@@ -428,19 +597,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${members.length ? `
                     <table class="developer-table developer-modal-table">
                         <thead>
-                            <tr><th>Member</th><th>Roles</th><th>Status</th></tr>
+                            <tr><th>Member</th><th>Roles</th><th>Privileges</th><th>Status</th><th>Actions</th></tr>
                         </thead>
                         <tbody>
-                            ${members.map((member) => `
-                                <tr>
-                                    <td>
-                                        <strong>${escapeHtml(member.full_name || member.email || 'Member')}</strong>
-                                        <span>${escapeHtml(member.email || '')}</span>
-                                    </td>
-                                    <td><span>${escapeHtml(normalizeList(member.roles).join(', ') || 'Member')}</span></td>
-                                    <td>${statusBadge(member.membership_status)}<small>${escapeHtml(member.account_state || '')}</small></td>
-                                </tr>
-                            `).join('')}
+                            ${members.map((member) => {
+                                const memberUser = userPayload({
+                                    id: member.user_id,
+                                    uid: member.uid,
+                                    email: member.email,
+                                    full_name: member.full_name,
+                                    placeId: resolvedChurchId,
+                                    placeName: church.display_name || church.name,
+                                    roles: member.roles,
+                                    app_privileges: member.app_privileges,
+                                    account_state: member.account_state,
+                                    approval_status: member.membership_status,
+                                    pending_membership_id: String(member.membership_status || '').toLowerCase() === 'pending' ? member.membership_id : '',
+                                    is_developer: member.is_developer
+                                });
+                                return `
+                                    <tr>
+                                        <td>
+                                            <strong>${escapeHtml(member.full_name || member.email || 'Member')}</strong>
+                                            <span>${escapeHtml(member.email || '')}</span>
+                                        </td>
+                                        <td><span>${escapeHtml(previewList(member.roles, 'Member'))}</span></td>
+                                        <td><span>${escapeHtml(previewList(member.app_privileges, 'No extra privileges'))}</span></td>
+                                        <td>${statusBadge(member.membership_status)}<small>${escapeHtml(member.account_state || '')}</small></td>
+                                        <td>
+                                            <div class="developer-action-row">
+                                                ${String(member.membership_status || '').toLowerCase() === 'pending' ? `<button class="developer-icon-btn" title="Approve member" data-action="approve-member" data-id="${escapeHtml(member.membership_id)}"><i class="fas fa-user-check"></i></button>` : ''}
+                                                <button class="developer-icon-btn" title="Change roles and privileges" data-action="edit-user-access" data-user="${escapeAttrJson(memberUser)}"><i class="fas fa-user-gear"></i></button>
+                                                <button class="developer-icon-btn danger" title="Delete account from Supabase" data-action="delete-user" data-id="${escapeHtml(member.user_id)}" data-email="${escapeHtml(member.email || '')}"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
                         </tbody>
                     </table>
                 ` : '<div class="developer-empty"><i class="fas fa-users"></i><span>No members found for this church.</span></div>'}
@@ -560,10 +753,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const refreshContext = async () => {
-        if (state.activeView === 'overview') await loadOverview();
-        if (state.activeView === 'churches') await loadChurches();
-        if (state.activeView === 'requests') await loadChurchRequests();
-        if (state.activeView === 'issues') await loadIssues();
+        await loadActiveView();
     };
 
     const handleAction = async (button) => {
@@ -584,6 +774,56 @@ document.addEventListener('DOMContentLoaded', () => {
             if (action === 'view-issue') {
                 renderIssueDetail(JSON.parse(button.dataset.issue || '{}'));
                 return;
+            }
+            if (action === 'edit-user-access') {
+                renderUserAccessModal(JSON.parse(button.dataset.user || '{}'));
+                return;
+            }
+            if (action === 'save-user-access') {
+                const formData = collectUserAccessForm();
+                const churchToRefresh = state.selectedChurchId;
+                await rpc('developer_update_user_access', {
+                    p_user_id: id,
+                    p_roles: formData.roles,
+                    p_app_privileges: formData.privileges,
+                    p_account_state: formData.accountState
+                });
+                showMessage('developerPortalMessage', 'User roles, privileges, and account state were updated.', 'success');
+                if (churchToRefresh) {
+                    await renderChurchDetail(churchToRefresh);
+                } else {
+                    closeModal();
+                }
+                await refreshContext();
+            }
+            if (action === 'approve-member') {
+                const churchToRefresh = state.selectedChurchId;
+                const reason = window.prompt('Optional approval note for the audit log:') || 'Approved from developer portal.';
+                await rpc('developer_approve_member_request', {
+                    p_membership_id: id,
+                    p_reason: reason
+                });
+                showMessage('developerPortalMessage', 'Member approved. The user will be notified and can access church features.', 'success');
+                if (churchToRefresh) await renderChurchDetail(churchToRefresh);
+                await refreshContext();
+            }
+            if (action === 'delete-user') {
+                if (!id) throw new Error('User ID is missing.');
+                const typed = window.prompt(`This permanently deletes ${email || 'this user'} from Supabase. Type DELETE to continue.`);
+                if (typed !== 'DELETE') return;
+                const reason = window.prompt('Reason for deleting this account?') || 'Deleted from developer portal.';
+                const churchToRefresh = state.selectedChurchId;
+                await rpc('developer_delete_user_account', {
+                    p_user_id: id,
+                    p_reason: reason
+                });
+                showMessage('developerPortalMessage', 'User account deleted from Supabase.', 'success');
+                if (churchToRefresh) {
+                    await renderChurchDetail(churchToRefresh);
+                } else {
+                    closeModal();
+                }
+                await refreshContext();
             }
             if (action === 'approve-church') {
                 await rpc('developer_approve_church_registration', { p_church_id: id });
