@@ -421,6 +421,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const functionErrorMessage = async (error) => {
+        const context = error?.context;
+        if (context && typeof context.clone === 'function') {
+            try {
+                const payload = await context.clone().json();
+                if (payload?.error) return payload.error;
+                if (payload?.message) return payload.message;
+            } catch (_) {}
+        }
+        return error?.message || 'Request failed.';
+    };
+
+    const sendSignupVerification = async ({ email, password, redirectTo, flowType, userData }) => {
+        const { data, error } = await client.functions.invoke('grace-mailer', {
+            body: {
+                action: 'auth-signup',
+                email,
+                password,
+                redirectTo,
+                flowType,
+                userData
+            }
+        });
+        if (error) throw new Error(await functionErrorMessage(error));
+        if (!data?.ok) {
+            throw new Error(data?.error || 'Email verification could not be sent.');
+        }
+        return data;
+    };
+
     const checkPoliciesSnapshot = (activePolicies, storedPolicies) => {
         if (!storedPolicies || !Array.isArray(storedPolicies)) return false;
         if (activePolicies.length !== storedPolicies.length) return false;
@@ -612,31 +642,20 @@ You can continue, but our developer review team may ask for more verification. C
                     })) : []
                 }));
 
-                const { data, error } = await client.auth.signUp({
+                await sendSignupVerification({
                     email: adminEmail,
-                    password: password,
-                    options: {
-                        emailRedirectTo: `${window.location.origin}/register-church.html?complete=1`,
-                        data: {
-                            full_name: adminName,
-                            phone: adminPhone,
-                            signupSource: 'web_church_registration'
-                        }
+                    password,
+                    redirectTo: `${window.location.origin}/register-church.html?complete=1`,
+                    flowType: 'web_church_registration',
+                    userData: {
+                        full_name: adminName,
+                        phone: adminPhone
                     }
                 });
 
-                if (error) throw error;
-
                 churchRegisterForm.style.display = 'none';
                 document.querySelector('.form-header').style.display = 'none';
-
-                if (!data?.session) {
-                    document.getElementById('verifyEmailState').style.display = 'block';
-                } else {
-                    // User already verified (e.g. disabled email verification on dev)
-                    // Let the page reload or trigger completion state directly
-                    location.reload();
-                }
+                document.getElementById('verifyEmailState').style.display = 'block';
                 
             } catch (error) {
                 showMessage('registerMessage', `<i class="fas fa-exclamation-triangle"></i> ${error.message || 'An error occurred during registration.'}`, 'error');
@@ -763,29 +782,20 @@ You can continue, but our developer review team may ask for more verification. C
                     })) : []
                 }));
 
-                const { data, error } = await client.auth.signUp({
+                await sendSignupVerification({
                     email: memberEmail,
-                    password: password,
-                    options: {
-                        emailRedirectTo: `${window.location.origin}/member-signup.html?complete=1`,
-                        data: {
-                            full_name: memberName,
-                            phone: memberPhone,
-                            signupSource: 'web_member_signup'
-                        }
+                    password,
+                    redirectTo: `${window.location.origin}/member-signup.html?complete=1`,
+                    flowType: 'web_member_signup',
+                    userData: {
+                        full_name: memberName,
+                        phone: memberPhone
                     }
                 });
 
-                if (error) throw error;
-
                 memberSignupForm.style.display = 'none';
                 document.querySelector('.form-header').style.display = 'none';
-                
-                if (!data?.session) {
-                    document.getElementById('verifyEmailState').style.display = 'block';
-                } else {
-                    location.reload();
-                }
+                document.getElementById('verifyEmailState').style.display = 'block';
                 
             } catch (error) {
                 showMessage('memberMessage', `<i class="fas fa-exclamation-triangle"></i> ${error.message || 'An error occurred during signup.'}`, 'error');

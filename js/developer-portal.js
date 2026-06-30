@@ -121,6 +121,41 @@ document.addEventListener('DOMContentLoaded', () => {
         return data;
     };
 
+    const functionErrorMessage = async (error) => {
+        const context = error?.context;
+        if (context && typeof context.clone === 'function') {
+            try {
+                const payload = await context.clone().json();
+                if (payload?.error) return payload.error;
+                if (payload?.message) return payload.message;
+            } catch (_) {}
+        }
+        return error?.message || 'Request failed.';
+    };
+
+    const invokeMailer = async (body) => {
+        const { data, error } = await client.functions.invoke('grace-mailer', { body });
+        if (error) throw new Error(await functionErrorMessage(error));
+        if (data?.ok === false) throw new Error(data.error || 'Email delivery failed.');
+        return data || { ok: true, total: 0, sent: 0, failed: 0 };
+    };
+
+    const flushQueuedEmails = async () => {
+        try {
+            return await invokeMailer({ action: 'flush-queue', limit: 25 });
+        } catch (error) {
+            console.error('Queued email delivery failed:', error);
+            return { ok: false, error: error.message || 'Email delivery failed.' };
+        }
+    };
+
+    const emailDeliverySuffix = (delivery) => {
+        if (!delivery) return '';
+        if (delivery.ok === false) return ` Email delivery is not active: ${delivery.error}`;
+        if (!delivery.total) return ' No queued emails needed sending.';
+        return ` Email delivery: ${delivery.sent}/${delivery.total} sent${delivery.failed ? `, ${delivery.failed} failed` : ''}.`;
+    };
+
     const verifyDeveloperSession = async () => {
         const { data: sessionResult } = await client.auth.getSession();
         if (!sessionResult?.session) {
@@ -803,9 +838,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     p_membership_id: id,
                     p_reason: reason
                 });
-                showMessage('developerPortalMessage', 'Member approved. The user will be notified and can access church features.', 'success');
+                const delivery = await flushQueuedEmails();
                 if (churchToRefresh) await renderChurchDetail(churchToRefresh);
                 await refreshContext();
+                showMessage('developerPortalMessage', `Member approved. The user can access church features.${emailDeliverySuffix(delivery)}`, delivery?.ok === false ? 'error' : 'success');
             }
             if (action === 'delete-user') {
                 if (!id) throw new Error('User ID is missing.');
@@ -817,26 +853,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     p_user_id: id,
                     p_reason: reason
                 });
-                showMessage('developerPortalMessage', 'User account deleted from Supabase.', 'success');
+                const delivery = await flushQueuedEmails();
                 if (churchToRefresh) {
                     await renderChurchDetail(churchToRefresh);
                 } else {
                     closeModal();
                 }
                 await refreshContext();
+                showMessage('developerPortalMessage', `User account deleted from Supabase.${emailDeliverySuffix(delivery)}`, delivery?.ok === false ? 'error' : 'success');
             }
             if (action === 'approve-church') {
                 await rpc('developer_approve_church_registration', { p_church_id: id });
+                const delivery = await flushQueuedEmails();
                 closeModal();
-                showMessage('developerPortalMessage', 'Church registration approved and the applicant was queued for email notification.', 'success');
                 await refreshContext();
+                showMessage('developerPortalMessage', `Church registration approved.${emailDeliverySuffix(delivery)}`, delivery?.ok === false ? 'error' : 'success');
             }
             if (action === 'reject-church') {
                 const reason = window.prompt('Reason for denying this church registration?') || '';
                 await rpc('developer_reject_church_registration', { p_church_id: id, p_reason: reason });
+                const delivery = await flushQueuedEmails();
                 closeModal();
-                showMessage('developerPortalMessage', 'Church registration denied and the applicant was queued for email notification.', 'success');
                 await refreshContext();
+                showMessage('developerPortalMessage', `Church registration denied.${emailDeliverySuffix(delivery)}`, delivery?.ok === false ? 'error' : 'success');
             }
             if (action === 'suspend-church') {
                 const reason = window.prompt('Reason for suspending this church?') || '';
@@ -847,8 +886,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (action === 'prompt-setup') {
                 await rpc('developer_send_church_setup_prompt', { p_church_id: id, p_message: null });
-                showMessage('developerPortalMessage', 'Setup prompt queued for the church contact.', 'success');
+                const delivery = await flushQueuedEmails();
                 await refreshContext();
+                showMessage('developerPortalMessage', `Setup prompt prepared for the church contact.${emailDeliverySuffix(delivery)}`, delivery?.ok === false ? 'error' : 'success');
             }
             if (action === 'grant-subscription') {
                 const months = Number(button.dataset.months || '1');
@@ -881,9 +921,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     p_status: nextStatus,
                     p_note: note
                 });
+                const delivery = await flushQueuedEmails();
                 closeModal();
-                showMessage('developerPortalMessage', `Issue marked ${nextStatus.replaceAll('_', ' ')}. Reporter update was queued by email.`, 'success');
                 await refreshContext();
+                showMessage('developerPortalMessage', `Issue marked ${nextStatus.replaceAll('_', ' ')}.${emailDeliverySuffix(delivery)}`, delivery?.ok === false ? 'error' : 'success');
             }
             if (action === 'remove-developer') {
                 if (!window.confirm(`Disable developer access for ${email}?`)) return;
