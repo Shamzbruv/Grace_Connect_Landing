@@ -15,12 +15,7 @@
     <!-- Main Stylesheet -->
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-    <!-- Background Decorators -->
-    <div class="bg-gradient-gold"></div>
-    <div class="bg-gradient-navy"></div>
-    <div class="bg-gradient-purple"></div>
-
+<body class="home-page">
     <!-- Navigation Bar -->
     <nav class="navbar" id="navbar">
         <div class="nav-container">
@@ -47,23 +42,121 @@
         </div>
     </nav>
 
-    <!-- Split Hero Section -->
-    <section class="hero-split" id="home">
-        <div class="container hero-container">
-            <div class="hero-content animate-up">
-                <span class="welcome-badge"><i class="fas fa-dove"></i> Welcome home</span>
-                <h1 class="hero-title">Bring Your Church Family Closer — In Faith, Fellowship, and Purpose.</h1>
-                <p class="hero-subtitle">Grace Connect helps churches build a blessed digital home for members, prayer, events, giving, Bible study, attendance, announcements, and community.</p>
-                <div class="hero-actions">
-                    <a href="register-church.html" class="btn btn-primary">Register Your Church <i class="fas fa-arrow-right"></i></a>
-                    <a href="member-signup.html" class="btn btn-secondary">Member Sign Up</a>
+    <!-- Live Hero Section -->
+    <section class="hero-live" id="home">
+        <div class="hero-scene" aria-hidden="true">
+            <div class="scene-panel scene-panel-feed">
+                <div class="panel-dot"></div>
+                <span>Sunday morning check-in is live</span>
+            </div>
+            <div class="scene-panel scene-panel-prayer">
+                <i class="fas fa-praying-hands"></i>
+                <span>18 members praying together</span>
+            </div>
+            <div class="scene-panel scene-panel-approval">
+                <i class="fas fa-user-check"></i>
+                <span>New member request ready</span>
+            </div>
+            <div class="live-phone">
+                <div class="phone-status">
+                    <span>9:41</span>
+                    <span><i class="fas fa-wifi"></i> 100%</span>
+                </div>
+                <div class="phone-topline">
+                    <img src="assets/app_icon.png" alt="">
+                    <div>
+                        <strong>Grace Connect</strong>
+                        <span>Bull Bay NTCOG</span>
+                    </div>
+                </div>
+                <div class="phone-card active">
+                    <div class="phone-card-header">
+                        <i class="fas fa-bullhorn"></i>
+                        <span>Announcement</span>
+                    </div>
+                    <h3>Family Sunday begins at 10 AM</h3>
+                    <p>Choir warm-up, visitor welcome, and fellowship lunch are all set.</p>
+                </div>
+                <div class="phone-grid">
+                    <div>
+                        <i class="fas fa-book-bible"></i>
+                        <strong>Daily Bible</strong>
+                        <span>1 task ready</span>
+                    </div>
+                    <div>
+                        <i class="fas fa-calendar-check"></i>
+                        <strong>Events</strong>
+                        <span>3 this week</span>
+                    </div>
+                </div>
+                <div class="phone-feed">
+                    <span></span>
+                    <div>
+                        <strong>Keisha shared a testimony</strong>
+                        <small>2 minutes ago</small>
+                    </div>
                 </div>
             </div>
-            <div class="hero-visual animate-up delay-1">
-                <div class="mockup-wrapper glass-card">
-                    <div class="glow-effect"></div>
-                    <img src="assets/images/hero_mockup.png" alt="Grace Connect App Preview" class="mockup-img" onerror="this.src='https://via.placeholder.com/400x500?text=App+Preview'">
+            <div class="worship-lines">
+                <span></span><span></span><span></span><span></span>
+            </div>
+        </div>
+
+        <div class="container hero-live-content">
+            <div class="hero-copy">
+                <span class="welcome-badge"><i class="fas fa-dove"></i> A digital home for church life</span>
+                <h1 class="hero-title">Grace Connect</h1>
+                <p class="hero-subtitle">Bring prayer, announcements, Bible study, events, member approvals, giving, attendance, and fellowship into one secure place your church can actually use every day.</p>
+                <div class="hero-actions">
+                    <a href="register-church.html" class="btn btn-primary">Register Your Church <i class="fas fa-arrow-right"></i></a>
+                    <a href="member-signup.html" class="btn btn-secondary">Find Your Church</a>
                 </div>
+            </div>
+
+            <div class="hero-proof">
+                <div>
+                    <strong>7</strong>
+                    <span>ministry workflows</span>
+                </div>
+                <div>
+                    <strong>24</strong>
+                    <span>hour church rhythm</span>
+                </div>
+                <div>
+                    <strong>1</strong>
+                    <span>secure church home</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Church Rhythm -->
+    <section class="rhythm-section" aria-label="Grace Connect daily rhythm">
+        <div class="container rhythm-grid">
+            <div class="rhythm-card rhythm-card-large animate-up">
+                <span class="rhythm-label"><i class="fas fa-sun"></i> Today in church</span>
+                <h2>Everything feels closer when the church day has a pulse.</h2>
+                <p>Grace Connect keeps the everyday pieces of ministry moving together, from morning devotion to evening prayer and weekend service prep.</p>
+            </div>
+            <div class="rhythm-card animate-up delay-1">
+                <i class="fas fa-user-plus"></i>
+                <strong>Membership requests</strong>
+                <span>Pastors and admins approve real people before church access opens.</span>
+            </div>
+            <div class="rhythm-card animate-up delay-1">
+                <i class="fas fa-fire"></i>
+                <strong>Bible and quiz momentum</strong>
+                <span>Daily spiritual habits stay visible without feeling like admin work.</span>
+            </div>
+            <div class="rhythm-card animate-up delay-2">
+                <i class="fas fa-comments"></i>
+                <strong>Community feed</strong>
+                <span>Members can share testimonies, moments, photos, videos, and encouragement.</span>
+            </div>
+            <div class="rhythm-card animate-up delay-2">
+                <i class="fas fa-shield-heart"></i>
+                <strong>Church-first access</strong>
+                <span>Browse the feed while pending; church tools unlock after approval.</span>
             </div>
         </div>
     </section>
@@ -355,6 +448,6 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="js/main.js?v=20260624-8"></script>
+    <script src="js/main.js?v=20260630-landing-life"></script>
 </body>
 </html>
