@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifying Email - Grace Connect</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(16, 38, 85, 0.18);
+            border-top-color: #102655;
+            border-radius: 50%;
+            animation: gc-spin 0.9s linear infinite;
+        }
+
+        @keyframes gc-spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="page-form">
+    <div class="bg-gradient-gold"></div>
+    <div class="bg-gradient-navy"></div>
+
+    <main class="page-content">
+        <div class="container form-page-container animate-up">
+            <div class="form-wrapper glass-card text-center" style="max-width: 760px;">
+                <div id="authCallbackIcon" class="success-icon" style="margin: 0 auto 24px;">
+                    <span class="spinner" aria-hidden="true"></span>
+                </div>
+                <h2 id="authCallbackTitle">Verifying Your Email</h2>
+                <p id="authCallbackMessage">Please wait while Grace Connect confirms this secure email link.</p>
+                <div id="authCallbackActions" class="mt-4" style="display: none;">
+                    <a id="authCallbackContinue" href="index.html" class="btn btn-primary w-full">Continue</a>
+                    <a href="index.html" class="btn btn-secondary w-full mt-2">Return Home</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/supabase-config.js?v=20260630-verify"></script>
+    <script src="js/auth-callback.js?v=20260630-verify"></script>
+</body>
+</html>

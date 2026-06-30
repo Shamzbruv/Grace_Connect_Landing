@@ -1232,6 +1232,13 @@ h1, h2, h3, h4, h5 {
     margin-bottom: 4px;
 }
 
+.church-search-profile {
+    display: block;
+    margin-top: 8px;
+    color: var(--color-text-muted);
+    line-height: 1.45;
+}
+
 .large-badge {
     padding: 20px 24px;
     font-size: 1.1rem;

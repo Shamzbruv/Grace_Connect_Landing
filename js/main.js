@@ -728,6 +728,18 @@ You can continue, but our developer review team may ask for more verification. C
                     span.appendChild(document.createTextNode(church.address || 'Address not provided'));
                     item.appendChild(strong);
                     item.appendChild(span);
+                    const details = [
+                        church.lead_pastor ? `Pastor: ${church.lead_pastor}` : '',
+                        church.member_count ? `${church.member_count} member${Number(church.member_count) === 1 ? '' : 's'}` : '',
+                        church.service_times_note ? church.service_times_note : '',
+                        church.about ? church.about : ''
+                    ].filter(Boolean);
+                    if (details.length) {
+                        const profile = document.createElement('small');
+                        profile.className = 'church-search-profile';
+                        profile.textContent = details.slice(0, 3).join(' | ');
+                        item.appendChild(profile);
+                    }
                     item.addEventListener('click', () => selectChurch(church));
                     searchResults.appendChild(item);
                 });
