@@ -30,7 +30,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    const formatJamaicaDate = (value) => {
+        if (!value) return 'Not scheduled';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return 'Not scheduled';
+        return date.toLocaleString([], {
+            timeZone: 'America/Jamaica',
+            timeZoneName: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+        });
+    };
+
     const normalizeList = (value) => Array.isArray(value) ? value : [];
+
+    const scheduledContentManagerRoles = new Set([
+        'super_developer',
+        'support_developer',
+        'content_moderator',
+        'security_admin'
+    ]);
+
+    const canManageScheduledContent = () => scheduledContentManagerRoles.has(
+        String(state.session?.developer_role || '').toLowerCase()
+    );
 
     const roleOptions = [
         'Member',
@@ -138,6 +164,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) throw new Error(await functionErrorMessage(error));
         if (data?.ok === false) throw new Error(data.error || 'Email delivery failed.');
         return data || { ok: true, total: 0, sent: 0, failed: 0 };
+    };
+
+    const invokeFunction = async (name, body) => {
+        const { data, error } = await client.functions.invoke(name, { body });
+        if (error) throw new Error(await functionErrorMessage(error));
+        if (data?.error) throw new Error(data.error);
+        return data || { ok: true };
     };
 
     const flushQueuedEmails = async () => {
@@ -599,6 +632,57 @@ document.addEventListener('DOMContentLoaded', () => {
         `), 'No developer audit events yet.');
     };
 
+    const loadScheduledContent = async () => {
+        setLoading('scheduledDailyWordList', 'Loading Daily Word schedule');
+        setLoading('scheduledQuizList', 'Loading Bible Quiz schedule');
+        const data = await rpc('developer_list_scheduled_content', { p_days: 14 });
+        const dailyWords = normalizeList(data?.daily_words);
+        const quizzes = normalizeList(data?.quizzes);
+
+        const wordList = document.getElementById('scheduledDailyWordList');
+        wordList.innerHTML = dailyWords.length ? dailyWords.map((word) => `
+            <div class="developer-list-item">
+                <strong>${escapeHtml(word.title || 'Daily Word')}</strong>
+                <span>${escapeHtml(formatJamaicaDate(word.release_at))} · ${statusBadge(word.status)}</span>
+                <p>${escapeHtml(word.message || '')}</p>
+                <small>${escapeHtml(word.scripture_reference || '')}${word.topic ? ` · ${escapeHtml(word.topic)}` : ''}</small>
+            </div>
+        `).join('') : '<div class="developer-empty"><i class="fas fa-calendar-xmark"></i><span>No Daily Word is scheduled yet.</span></div>';
+
+        const quizList = document.getElementById('scheduledQuizList');
+        quizList.innerHTML = quizzes.length ? quizzes.map((quiz) => {
+            const questions = normalizeList(quiz.questions);
+            const releaseAt = new Date(quiz.release_at);
+            const isUpcoming = !Number.isNaN(releaseAt.getTime()) && releaseAt > new Date();
+            const canRefresh = canManageScheduledContent()
+                && String(quiz.status || '').toLowerCase() === 'scheduled'
+                && isUpcoming;
+            return `
+                <div class="developer-list-item">
+                    <strong>Bible Quiz · ${escapeHtml(quiz.church_id || 'Global')}</strong>
+                    <span>${escapeHtml(formatJamaicaDate(quiz.release_at))} · ${statusBadge(quiz.status)} · ${questions.length} questions</span>
+                    <details>
+                        <summary>Preview questions (answers hidden)</summary>
+                        <ol>
+                            ${questions.map((question) => `
+                                <li>
+                                    <strong>${escapeHtml(question.question || '')}</strong>
+                                    <small>${normalizeList(question.options).map((option) => escapeHtml(option)).join(' · ')}</small>
+                                </li>
+                            `).join('')}
+                        </ol>
+                    </details>
+                    ${canRefresh ? `
+                        <button class="btn btn-secondary" data-action="regenerate-scheduled-quiz" data-id="${escapeHtml(quiz.id)}">
+                            <i class="fas fa-arrows-rotate"></i> Replace Questions
+                        </button>
+                    ` : ''}
+                    <small>Release slot remains unchanged. Answer key hidden.</small>
+                </div>
+            `;
+        }).join('') : '<div class="developer-empty"><i class="fas fa-calendar-xmark"></i><span>No Bible Quiz is scheduled yet.</span></div>';
+    };
+
     const renderChurchDetail = async (churchId) => {
         state.selectedChurchId = churchId;
         openModal(
@@ -768,6 +852,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (state.activeView === 'churches') await loadChurches();
             if (state.activeView === 'requests') await loadChurchRequests();
             if (state.activeView === 'issues') await loadIssues();
+            if (state.activeView === 'content') await loadScheduledContent();
             if (state.activeView === 'users') await loadUsers();
             if (state.activeView === 'developers') await loadDeveloperAccounts();
             if (state.activeView === 'audit') await loadAudit();
@@ -925,6 +1010,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 closeModal();
                 await refreshContext();
                 showMessage('developerPortalMessage', `Issue marked ${nextStatus.replaceAll('_', ' ')}.${emailDeliverySuffix(delivery)}`, delivery?.ok === false ? 'error' : 'success');
+            }
+            if (action === 'regenerate-scheduled-quiz') {
+                if (!canManageScheduledContent()) {
+                    throw new Error('Your developer role can preview scheduled content but cannot replace quiz questions.');
+                }
+                if (!window.confirm('Replace these questions while keeping the same release date and time?')) return;
+                await invokeFunction('generate-daily-bible-quiz', {
+                    action: 'regenerate_scheduled',
+                    quiz_id: id
+                });
+                await loadScheduledContent();
+                showMessage('developerPortalMessage', 'Scheduled questions replaced. The release date and time did not change.', 'success');
             }
             if (action === 'remove-developer') {
                 if (!window.confirm(`Disable developer access for ${email}?`)) return;

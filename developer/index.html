@@ -24,6 +24,7 @@
             <button class="developer-nav-btn" data-view="churches"><i class="fas fa-church"></i><span>Churches</span></button>
             <button class="developer-nav-btn" data-view="requests"><i class="fas fa-clipboard-check"></i><span>Church Requests</span></button>
             <button class="developer-nav-btn" data-view="issues"><i class="fas fa-bug"></i><span>Issues</span></button>
+            <button class="developer-nav-btn" data-view="content"><i class="fas fa-calendar-day"></i><span>Daily Content</span></button>
             <button class="developer-nav-btn" data-view="users"><i class="fas fa-users"></i><span>Users</span></button>
             <button class="developer-nav-btn" data-view="developers"><i class="fas fa-user-shield"></i><span>Developers</span></button>
             <button class="developer-nav-btn" data-view="audit"><i class="fas fa-clipboard-list"></i><span>Audit</span></button>
@@ -142,6 +143,26 @@
             <div id="userSearchList" class="developer-table-shell"></div>
         </section>
 
+        <section class="developer-view" id="view-content">
+            <div class="developer-section-heading">
+                <div>
+                    <h2>Upcoming Daily Content</h2>
+                    <p>Preview the exact Daily Word and Bible Quiz scheduled for release. Quiz answer keys are never exposed here.</p>
+                </div>
+                <button class="btn btn-secondary developer-refresh-btn" data-refresh="content"><i class="fas fa-rotate"></i> Reload Schedule</button>
+            </div>
+            <div class="developer-two-column">
+                <div class="developer-panel">
+                    <h3>Daily Word Schedule</h3>
+                    <div id="scheduledDailyWordList" class="developer-list"></div>
+                </div>
+                <div class="developer-panel">
+                    <h3>Bible Quiz Schedule</h3>
+                    <div id="scheduledQuizList" class="developer-list"></div>
+                </div>
+            </div>
+        </section>
+
         <section class="developer-view" id="view-developers">
             <div class="developer-section-heading">
                 <div>
@@ -198,6 +219,6 @@
     </div>
 
     <script src="../js/supabase-config.js?v=20260630-1"></script>
-    <script src="../js/developer-portal.js?v=20260630-1"></script>
+    <script src="../js/developer-portal.js?v=20260805-1"></script>
 </body>
 </html>
