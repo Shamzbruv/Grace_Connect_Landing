@@ -2,8 +2,11 @@ services:
   - type: web
     name: graceconnect-app
     runtime: static
-    staticPublishPath: build/web
-    buildCommand: echo "Using pre-built web output"
+    # This repository is the pre-built static site: index.html, css/, js/, and
+    # assets/ all live at the repository root. There is no Flutter build/web
+    # output in this project.
+    staticPublishPath: ./
+    buildCommand: echo "Publishing root-level Grace Connect static site"
     headers:
       - path: /*
         name: Cache-Control
