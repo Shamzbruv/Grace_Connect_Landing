@@ -329,17 +329,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const navLinks = document.getElementById('navLinks');
     
     if (mobileMenuBtn && navLinks) {
-        mobileMenuBtn.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
+        const setMenuOpen = (isOpen) => {
+            navLinks.classList.toggle('active', isOpen);
+            mobileMenuBtn.setAttribute('aria-expanded', String(isOpen));
+            mobileMenuBtn.setAttribute('aria-label', isOpen ? 'Close navigation' : 'Open navigation');
             const icon = mobileMenuBtn.querySelector('i');
-            if (navLinks.classList.contains('active')) {
+            if (isOpen) {
                 icon.classList.remove('fa-bars');
                 icon.classList.add('fa-times');
             } else {
                 icon.classList.remove('fa-times');
                 icon.classList.add('fa-bars');
             }
+        };
+        mobileMenuBtn.addEventListener('click', () => {
+            setMenuOpen(!navLinks.classList.contains('active'));
         });
+        navLinks.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenuOpen(false)));
     }
 
     // --- Global: Navbar Scroll Effect ---

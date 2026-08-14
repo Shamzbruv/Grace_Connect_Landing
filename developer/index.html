@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/style.css?v=20260811-finance-bento">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="developer-portal-page">
@@ -25,6 +25,7 @@
             <button class="developer-nav-btn" data-view="requests"><i class="fas fa-clipboard-check"></i><span>Church Requests</span></button>
             <button class="developer-nav-btn" data-view="issues"><i class="fas fa-bug"></i><span>Issues</span></button>
             <button class="developer-nav-btn" data-view="content"><i class="fas fa-calendar-day"></i><span>Daily Content</span></button>
+            <button class="developer-nav-btn" id="developerFinanceNav" data-view="finance" hidden><i class="fas fa-chart-pie"></i><span>Financial</span></button>
             <button class="developer-nav-btn" data-view="users"><i class="fas fa-users"></i><span>Users</span></button>
             <button class="developer-nav-btn" data-view="developers"><i class="fas fa-user-shield"></i><span>Developers</span></button>
             <button class="developer-nav-btn" data-view="audit"><i class="fas fa-clipboard-list"></i><span>Audit</span></button>
@@ -147,19 +148,102 @@
             <div class="developer-section-heading">
                 <div>
                     <h2>Upcoming Daily Content</h2>
-                    <p>Preview the exact Daily Word and Bible Quiz scheduled for release. Quiz answer keys are never exposed here.</p>
+                    <p>Preview and replace future Daily Word and Bible Quiz releases. Release times stay fixed, linked study chapters stay aligned, and quiz answer keys are never exposed here.</p>
                 </div>
-                <button class="btn btn-secondary developer-refresh-btn" data-refresh="content"><i class="fas fa-rotate"></i> Reload Schedule</button>
+                <button class="btn btn-secondary developer-refresh-btn" data-refresh="content"><i class="fas fa-rotate"></i> Reload</button>
             </div>
-            <div class="developer-two-column">
-                <div class="developer-panel">
-                    <h3>Daily Word Schedule</h3>
+            <div class="content-policy-card" id="quizUniquenessPolicy">
+                <div class="content-policy-copy">
+                    <span class="content-policy-icon"><i class="fas fa-shield-heart" aria-hidden="true"></i></span>
+                    <div>
+                        <strong>Guarantee different quiz questions every day</strong>
+                        <p>When enabled, Grace Connect checks upcoming scheduled questions and every ever-published question retained for that church audience plus Grace Connect Global, even if a released quiz is later withdrawn or archived. Monday, Wednesday, and Saturday questions must also come from that day’s never-repeated Daily Word chapter. Drafts and unrelated churches remain isolated. If it cannot create a completely unseen set, release fails safely instead of repeating questions.</p>
+                    </div>
+                </div>
+                <label class="developer-switch" for="quizUniquenessToggle">
+                    <input type="checkbox" id="quizUniquenessToggle" checked disabled>
+                    <span aria-hidden="true"></span>
+                    <b id="quizUniquenessLabel">On</b>
+                </label>
+            </div>
+            <div class="scheduled-content-bento">
+                <article class="developer-panel scheduled-content-column scheduled-word-column">
+                    <div class="scheduled-column-heading">
+                        <span><i class="fas fa-sun" aria-hidden="true"></i></span>
+                        <div><h3>Daily Word</h3><p>Future messages and their scripture context</p></div>
+                    </div>
                     <div id="scheduledDailyWordList" class="developer-list"></div>
-                </div>
-                <div class="developer-panel">
-                    <h3>Bible Quiz Schedule</h3>
+                </article>
+                <article class="developer-panel scheduled-content-column scheduled-quiz-column">
+                    <div class="scheduled-column-heading">
+                        <span><i class="fas fa-list-check" aria-hidden="true"></i></span>
+                        <div><h3>Bible Quiz</h3><p>Future questions with every answer kept private</p></div>
+                    </div>
                     <div id="scheduledQuizList" class="developer-list"></div>
+                </article>
+            </div>
+        </section>
+
+        <section class="developer-view" id="view-finance">
+            <div class="developer-section-heading">
+                <div>
+                    <p class="developer-kicker">Subscription operations</p>
+                    <h2>Financial Command Centre</h2>
+                    <p>Subscription health, recurring revenue, plan distribution, and custom requests in one live view.</p>
                 </div>
+                <div class="developer-filters">
+                    <label class="developer-sr-only" for="financialMonthRange">Report range</label>
+                    <select id="financialMonthRange">
+                        <option value="6">Last 6 months</option>
+                        <option value="12" selected>Last 12 months</option>
+                        <option value="24">Last 24 months</option>
+                    </select>
+                    <button class="btn btn-secondary developer-refresh-btn" data-refresh="finance"><i class="fas fa-rotate"></i> Refresh</button>
+                </div>
+            </div>
+
+            <div class="finance-bento-grid">
+                <div class="finance-kpi-grid finance-bento-span-full" id="financeKpis"></div>
+                <article class="finance-bento-card finance-trend-card">
+                    <div class="finance-card-heading">
+                        <div><span>Revenue performance</span><h3>Monthly recurring revenue</h3></div>
+                        <div class="finance-legend"><i class="finance-dot finance-dot-blue"></i> USD revenue</div>
+                    </div>
+                    <div id="financeRevenueChart" class="finance-chart-shell" aria-live="polite"></div>
+                </article>
+                <article class="finance-bento-card finance-status-card">
+                    <div class="finance-card-heading"><div><span>Portfolio</span><h3>Subscription status</h3></div></div>
+                    <div id="financeStatusChart" class="finance-chart-shell" aria-live="polite"></div>
+                </article>
+                <article class="finance-bento-card finance-tier-card">
+                    <div class="finance-card-heading"><div><span>Plan coverage</span><h3>Churches by member tier</h3></div></div>
+                    <div id="financeTierChart" class="finance-chart-shell" aria-live="polite"></div>
+                </article>
+                <article class="finance-bento-card finance-activity-card">
+                    <div class="finance-card-heading"><div><span>Request movement</span><h3>New, activated, and cancelled</h3></div></div>
+                    <div id="financeActivityChart" class="finance-chart-shell" aria-live="polite"></div>
+                </article>
+            </div>
+
+            <div class="finance-request-section">
+                <div class="developer-section-heading">
+                    <div><h2>Custom subscription requests</h2><p>Enterprise quotes, plan changes, cancellations, and billing support from churches.</p></div>
+                    <div class="developer-filters">
+                        <label class="developer-sr-only" for="financeRequestStatusFilter">Request status</label>
+                        <select id="financeRequestStatusFilter">
+                            <option value="">All statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="in_review">In review</option>
+                            <option value="quoted">Quoted</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="closed">Closed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                        <input type="search" id="financeRequestSearch" placeholder="Search church or contact" aria-label="Search subscription requests">
+                    </div>
+                </div>
+                <div id="financeRequestList" class="developer-table-shell"></div>
             </div>
         </section>
 
@@ -219,6 +303,6 @@
     </div>
 
     <script src="../js/supabase-config.js?v=20260630-1"></script>
-    <script src="../js/developer-portal.js?v=20260805-1"></script>
+    <script src="../js/developer-portal.js?v=20260811-finance-bento"></script>
 </body>
 </html>

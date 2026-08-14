@@ -13,7 +13,7 @@
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Stylesheet -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=20260811-neomorphic-pricing">
 </head>
 <body class="home-page">
     <!-- Navigation Bar -->
@@ -24,13 +24,14 @@
                 <span>Grace Connect</span>
             </a>
             
-            <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Open navigation" aria-controls="navLinks" aria-expanded="false">
                 <i class="fas fa-bars"></i>
             </button>
 
             <ul class="nav-links" id="navLinks">
                 <li><a href="index.html#home" class="active">Home</a></li>
                 <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
                 <li><a href="legal.html">Legal</a></li>
                 <li><a href="index.html#how-it-works">How It Works</a></li>
                 <li><a href="index.html#faq">FAQ</a></li>
@@ -296,6 +297,79 @@
         </div>
     </section>
 
+    <!-- Subscription Pricing -->
+    <section class="pricing-section" id="pricing" aria-labelledby="pricing-title">
+        <div class="container">
+            <div class="section-header text-center animate-up">
+                <span class="section-eyebrow">Simple church pricing</span>
+                <h2 id="pricing-title">One plan that grows with your church</h2>
+                <p>Pricing follows the number of active members. Approximate Jamaican-dollar reference equivalents are shown in brackets for easy planning.</p>
+            </div>
+            <div class="pricing-bento animate-up delay-1">
+                <article class="pricing-intro-card">
+                    <span class="pricing-kicker">Starts at</span>
+                    <strong><span>US$</span>17</strong>
+                    <p>per month for churches with up to 50 active members <b>(J$2,689)</b>.</p>
+                    <ul>
+                        <li><i class="fas fa-check" aria-hidden="true"></i> The complete Grace Connect platform</li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i> Plan assessments use your active-member count</li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i> Custom support for 1,001+ members</li>
+                    </ul>
+                    <a href="register-church.html" class="btn btn-primary">Register your church <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                </article>
+                <div class="pricing-table-card">
+                    <div class="pricing-table-heading">
+                        <div>
+                            <span class="section-eyebrow">Monthly tiers</span>
+                            <h3>Clear costs at every stage</h3>
+                        </div>
+                        <span class="pricing-rate-note">USD billing · approximate JMD reference</span>
+                    </div>
+                    <div class="pricing-table-scroll">
+                        <table class="pricing-table">
+                            <thead><tr><th scope="col">Active members</th><th scope="col">Monthly price</th></tr></thead>
+                            <tbody>
+                                <tr><td>0–50</td><td><strong>US$17</strong> <span>(J$2,689)</span></td></tr>
+                                <tr><td>51–100</td><td><strong>US$34</strong> <span>(J$5,377)</span></td></tr>
+                                <tr><td>101–150</td><td><strong>US$51</strong> <span>(J$8,066)</span></td></tr>
+                                <tr><td>151–200</td><td><strong>US$68</strong> <span>(J$10,755)</span></td></tr>
+                                <tr><td>201–300</td><td><strong>US$85</strong> <span>(J$13,444)</span></td></tr>
+                                <tr><td>301–400</td><td><strong>US$102</strong> <span>(J$16,132)</span></td></tr>
+                                <tr><td>401–500</td><td><strong>US$119</strong> <span>(J$18,821)</span></td></tr>
+                                <tr><td>501–700</td><td><strong>US$136</strong> <span>(J$21,510)</span></td></tr>
+                                <tr><td>701–900</td><td><strong>US$153</strong> <span>(J$24,199)</span></td></tr>
+                                <tr><td>901–1,000</td><td><strong>US$170</strong> <span>(J$26,887)</span></td></tr>
+                                <tr class="pricing-enterprise-row"><td>1,001+</td><td><strong>Enterprise / Custom</strong> <span>(Custom quote)</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="pricing-transparency-grid animate-up delay-2" aria-label="Subscription billing and access details">
+                <article>
+                    <i class="fas fa-receipt" aria-hidden="true"></i>
+                    <h3>Monthly billing, confirmed by people</h3>
+                    <p>Prices are monthly in USD. Submitting a subscription or quote request does not charge your church or enrol it in a paid plan. Under the current workflow, payment and activation are confirmed with the platform team and subscriptions do not renew automatically.</p>
+                </article>
+                <article>
+                    <i class="fas fa-building-shield" aria-hidden="true"></i>
+                    <h3>What a paid workspace unlocks</h3>
+                    <p>An active subscription unlocks the member directory, attendance, announcements, ministry and study-group management, private prayer care and counselling, scheduling, roles, church finance and analytics, and live-service management.</p>
+                </article>
+                <article>
+                    <i class="fas fa-heart" aria-hidden="true"></i>
+                    <h3>What remains available</h3>
+                    <p>Without an active subscription, members can still use Community, public events and RSVPs, Bible reading and Daily Word, Grace Rooms, Saved, profiles, notifications, messaging, and church transfer. Only paid church-workspace tools are paused.</p>
+                </article>
+                <article>
+                    <i class="fas fa-calendar-xmark" aria-hidden="true"></i>
+                    <h3>Cancellation and trials</h3>
+                    <p>An authorised pastor, church administrator, treasurer, financial secretary, or subscription manager can submit a cancellation request in the app and state the desired timing. Access changes when the platform team records the cancellation. Trials end on their recorded date and never convert automatically to a paid plan.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
     <!-- How It Works Section -->
     <section class="how-it-works-section" id="how-it-works">
         <div class="container">
@@ -412,6 +486,7 @@
                 <h4>Platform</h4>
                 <ul>
                     <li><a href="index.html#features">Features</a></li>
+                    <li><a href="index.html#pricing">Pricing</a></li>
                 <li><a href="legal.html">Legal</a></li>
                     <li><a href="register-church.html">Register Church</a></li>
                     <li><a href="member-signup.html">Member Access</a></li>
@@ -448,6 +523,6 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="js/main.js?v=20260630-landing-life"></script>
+    <script src="js/main.js?v=20260811-neomorphic-navigation"></script>
 </body>
 </html>
