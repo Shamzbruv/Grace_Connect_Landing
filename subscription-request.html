@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,follow">
+    <title>Subscription Request | Grace Connect</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css?v=20260811-web-subscription-intake">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="home-page subscription-request-page">
+    <nav class="navbar" aria-label="Primary navigation">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <img src="assets/logo.png" alt="Grace Connect">
+                <span>Grace Connect</span>
+            </a>
+            <div class="subscription-nav-actions">
+                <a href="index.html#pricing" class="btn btn-secondary"><i class="fas fa-arrow-left" aria-hidden="true"></i> Pricing</a>
+                <button type="button" class="btn btn-secondary" id="subscriptionSignOut" hidden>Sign out</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="subscription-request-main">
+        <section class="subscription-request-hero" aria-labelledby="subscription-request-title">
+            <div class="container subscription-request-hero-grid">
+                <div>
+                    <span class="section-eyebrow">Website-only request centre</span>
+                    <h1 id="subscription-request-title">Request a Grace Connect plan review</h1>
+                    <p>Approved pastors, church administrators, and authorised finance leaders can send a standard plan request or an enterprise custom-quote request to the Grace Connect developer finance team.</p>
+                    <div class="request-only-banner">
+                        <i class="fas fa-shield-halved" aria-hidden="true"></i>
+                        <div>
+                            <strong>This form is request-only.</strong>
+                            <span>Submitting it does not charge your church, activate or change access, enrol a subscription, or create an invoice. The finance team must review and contact you separately.</span>
+                        </div>
+                    </div>
+                </div>
+                <aside class="subscription-request-who">
+                    <i class="fas fa-user-lock" aria-hidden="true"></i>
+                    <h2>Authorised church leaders only</h2>
+                    <p>Sign in with the existing Grace Connect account attached to your approved church. Your active membership, church role, member count, and plan tier are verified by the server.</p>
+                    <small>This page is not an Android checkout or external-payment link.</small>
+                </aside>
+            </div>
+        </section>
+
+        <section class="subscription-request-content">
+            <div class="container subscription-request-layout">
+                <section class="subscription-auth-card" id="subscriptionAuthPanel" aria-labelledby="subscription-sign-in-title">
+                    <div class="subscription-card-heading">
+                        <span><i class="fas fa-key" aria-hidden="true"></i></span>
+                        <div>
+                            <h2 id="subscription-sign-in-title">Sign in to verify your church</h2>
+                            <p>Use the account already approved as a pastor, administrator, treasurer, financial secretary, or subscription manager.</p>
+                        </div>
+                    </div>
+                    <form id="subscriptionSignInForm" class="subscription-intake-form">
+                        <label>
+                            <span>Email address</span>
+                            <input type="email" id="subscriptionLoginEmail" autocomplete="username" maxlength="320" required>
+                        </label>
+                        <label>
+                            <span>Password</span>
+                            <input type="password" id="subscriptionLoginPassword" autocomplete="current-password" minlength="8" required>
+                        </label>
+                        <button type="submit" class="btn btn-primary" id="subscriptionLoginButton">Verify my access</button>
+                    </form>
+                    <p class="subscription-form-message" id="subscriptionAuthMessage" role="status" aria-live="polite"></p>
+                </section>
+
+                <section id="subscriptionWorkspace" class="subscription-workspace" hidden>
+                    <div class="subscription-context-grid">
+                        <article>
+                            <span>Approved church</span>
+                            <strong id="subscriptionChurchName">—</strong>
+                        </article>
+                        <article>
+                            <span>Active members</span>
+                            <strong id="subscriptionMemberCount">—</strong>
+                        </article>
+                        <article>
+                            <span>Verified tier</span>
+                            <strong id="subscriptionTierLabel">—</strong>
+                        </article>
+                        <article>
+                            <span>Monthly reference</span>
+                            <strong id="subscriptionTierPrice">—</strong>
+                        </article>
+                    </div>
+
+                    <div class="subscription-workspace-grid">
+                        <section class="subscription-intake-card" aria-labelledby="subscription-intake-title">
+                            <div class="subscription-card-heading">
+                                <span><i class="fas fa-file-signature" aria-hidden="true"></i></span>
+                                <div>
+                                    <h2 id="subscription-intake-title">Send a request to developer finance</h2>
+                                    <p id="subscriptionIntentDescription">Your request type is determined from the verified church tier and current subscription state.</p>
+                                </div>
+                            </div>
+                            <div class="subscription-intent-pill" id="subscriptionIntentLabel">Plan request</div>
+                            <form id="subscriptionRequestForm" class="subscription-intake-form">
+                                <input type="hidden" id="subscriptionIntent" value="">
+                                <label>
+                                    <span>Contact name</span>
+                                    <input type="text" id="subscriptionContactName" autocomplete="name" maxlength="160" required>
+                                </label>
+                                <label>
+                                    <span>Contact email</span>
+                                    <input type="email" id="subscriptionContactEmail" autocomplete="email" maxlength="320" required>
+                                </label>
+                                <label>
+                                    <span>Contact phone <small>(optional)</small></span>
+                                    <input type="tel" id="subscriptionContactPhone" autocomplete="tel" maxlength="64">
+                                </label>
+                                <label>
+                                    <span>What should the finance team know? <small>(optional)</small></span>
+                                    <textarea id="subscriptionRequestMessage" rows="5" maxlength="4000" placeholder="Billing contact, timing, questions, or enterprise requirements"></textarea>
+                                </label>
+                                <label class="subscription-request-consent">
+                                    <input type="checkbox" id="subscriptionTermsAccepted" required>
+                                    <span>I understand this is only a request for review. It does not charge, activate, enrol, invoice, or automatically renew anything. I have read the <a href="terms.html" target="_blank" rel="noopener">Grace Connect terms</a>.</span>
+                                </label>
+                                <button type="submit" class="btn btn-primary" id="subscriptionSubmitButton">Send request for review</button>
+                            </form>
+                            <p class="subscription-form-message" id="subscriptionRequestMessageOutput" role="status" aria-live="polite"></p>
+                        </section>
+
+                        <aside class="subscription-existing-card" aria-labelledby="subscription-existing-title">
+                            <div class="subscription-card-heading">
+                                <span><i class="fas fa-clock-rotate-left" aria-hidden="true"></i></span>
+                                <div>
+                                    <h2 id="subscription-existing-title">Recent requests</h2>
+                                    <p>Open and previous requests for this church.</p>
+                                </div>
+                            </div>
+                            <div id="subscriptionRequestHistory" class="subscription-request-history"></div>
+                        </aside>
+                    </div>
+                </section>
+
+                <section class="subscription-tier-reference" aria-labelledby="subscription-tier-reference-title">
+                    <div class="subscription-card-heading">
+                        <span><i class="fas fa-table-list" aria-hidden="true"></i></span>
+                        <div>
+                            <h2 id="subscription-tier-reference-title">Monthly tier reference</h2>
+                            <p>USD prices are monthly. Bracketed JMD amounts are approximate planning references.</p>
+                        </div>
+                    </div>
+                    <div class="pricing-table-scroll">
+                        <table class="pricing-table" id="subscriptionTierTable">
+                            <thead><tr><th scope="col">Active members</th><th scope="col">Monthly price</th></tr></thead>
+                            <tbody>
+                                <tr data-tier="tier_0_50"><td>0–50</td><td><strong>US$17</strong> <span>(J$2,689)</span></td></tr>
+                                <tr data-tier="tier_51_100"><td>51–100</td><td><strong>US$34</strong> <span>(J$5,377)</span></td></tr>
+                                <tr data-tier="tier_101_150"><td>101–150</td><td><strong>US$51</strong> <span>(J$8,066)</span></td></tr>
+                                <tr data-tier="tier_151_200"><td>151–200</td><td><strong>US$68</strong> <span>(J$10,755)</span></td></tr>
+                                <tr data-tier="tier_201_300"><td>201–300</td><td><strong>US$85</strong> <span>(J$13,444)</span></td></tr>
+                                <tr data-tier="tier_301_400"><td>301–400</td><td><strong>US$102</strong> <span>(J$16,132)</span></td></tr>
+                                <tr data-tier="tier_401_500"><td>401–500</td><td><strong>US$119</strong> <span>(J$18,821)</span></td></tr>
+                                <tr data-tier="tier_501_700"><td>501–700</td><td><strong>US$136</strong> <span>(J$21,510)</span></td></tr>
+                                <tr data-tier="tier_701_900"><td>701–900</td><td><strong>US$153</strong> <span>(J$24,199)</span></td></tr>
+                                <tr data-tier="tier_901_1000"><td>901–1,000</td><td><strong>US$170</strong> <span>(J$26,887)</span></td></tr>
+                                <tr data-tier="enterprise_1001_plus"><td>1,001+</td><td><strong>Enterprise / Custom</strong> <span>(Custom quote)</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-bottom">
+            <p>&copy; 2026 Grace Connect. Subscription requests are reviewed by the platform finance team.</p>
+            <div><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="support-policy.html">Support</a></div>
+        </div>
+    </footer>
+
+    <script src="js/supabase-config.js?v=20260811-web-subscription-intake"></script>
+    <script src="js/subscription-request.js?v=20260811-web-subscription-intake"></script>
+</body>
+</html>
