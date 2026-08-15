@@ -2717,9 +2717,46 @@ h1, h2, h3, h4, h5 {
 }
 
 .home-page .pricing-table-scroll {
+    position: relative;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     border-radius: 18px;
     box-shadow: inset 5px 5px 11px rgba(126,142,168,.18), inset -5px -5px 11px white;
+}
+
+/* Horizontally-scrollable tables are easy to miss on a phone -- a fading
+   right edge plus a one-time text hint make it obvious there's more to
+   swipe to, instead of the table just looking cut off. */
+.home-page .pricing-table-scroll::after {
+    content: '';
+    position: sticky;
+    top: 0;
+    right: 0;
+    float: right;
+    width: 28px;
+    height: 100%;
+    margin-right: -28px;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.9));
+}
+
+.home-page .pricing-swipe-hint {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    color: #708096;
+    font-size: .78rem;
+    font-weight: 700;
+}
+
+.home-page .pricing-swipe-hint i {
+    animation: pricingSwipeHint 1.6s ease-in-out infinite;
+}
+
+@keyframes pricingSwipeHint {
+    0%, 100% { transform: translateX(0); opacity: .6; }
+    50% { transform: translateX(5px); opacity: 1; }
 }
 
 .home-page .pricing-table {
@@ -3667,6 +3704,9 @@ h1, h2, h3, h4, h5 {
     .home-page .pricing-intro-card,
     .home-page .pricing-table-card {
         padding: 24px;
+    }
+    .home-page .pricing-swipe-hint {
+        display: flex;
     }
     .home-page .pricing-transparency-grid {
         grid-template-columns: 1fr;
