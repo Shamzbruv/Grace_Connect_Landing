@@ -1103,7 +1103,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <option value="activated">Activate subscription</option>
                                 <option value="renewed">Renew subscription</option>
                                 <option value="payment_received">Record payment received</option>
-                                <option value="trial_started">Start trial / manual grant</option>
+                                <option value="trial_started">Grant free trial (no charge)</option>
                                 <option value="marked_past_due">Mark past due</option>
                                 <option value="cancelled">Cancel subscription</option>
                                 <option value="note">Add internal note only</option>
@@ -1122,6 +1122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <input type="number" id="subscriptionMonthlyJmd" name="monthlyJmd" min="1" step="1" value="${escapeHtml(context.monthlyJmd ?? '')}" ${isEnterprise ? '' : 'disabled'}>
                         </label>
                     </div>
+                    <div class="subscription-form-notice" id="subscriptionTrialNotice" hidden><i class="fas fa-gift" aria-hidden="true"></i><p>This gives the church full access at no charge until the period end date above. Nothing is billed and no payment amount is recorded.</p></div>
                     <label class="developer-form-field">
                         <span>Internal financial note</span>
                         <textarea class="developer-wide-control subscription-notes-input" id="subscriptionEventNotes" name="notes" maxlength="4000" rows="4" placeholder="Invoice reference, payment method, quote context, or cancellation reason"></textarea>
@@ -1661,6 +1662,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const periodInput = document.getElementById('subscriptionPeriodEnd');
         if (periodField) periodField.hidden = !usesPeriod;
         if (periodInput) periodInput.disabled = !usesPeriod;
+        const trialNotice = document.getElementById('subscriptionTrialNotice');
+        if (trialNotice) trialNotice.hidden = eventType !== 'trial_started';
         const requiresEnterpriseAmount = form?.dataset.enterprise === 'true'
             && ['activated', 'renewed', 'payment_received'].includes(eventType);
         ['subscriptionMonthlyUsd', 'subscriptionMonthlyJmd'].forEach((id) => {

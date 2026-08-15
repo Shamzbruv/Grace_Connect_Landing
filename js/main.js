@@ -595,7 +595,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const adminPhone = document.getElementById('adminPhone').value.trim();
             const password = document.getElementById('adminPassword').value;
 
-            // NTCOG Naming Logic Standard
+            // Denomination-specific display-name normalization (currently applied to New Testament Church of God, which repeats its full name on every local congregation)
             let displayChurchName = churchName;
             const selectedOption = denominationSelect ? denominationSelect.options[denominationSelect.selectedIndex] : null;
             const denomCode = selectedOption ? selectedOption.dataset.code : '';
