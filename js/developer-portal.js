@@ -656,10 +656,123 @@ document.addEventListener('DOMContentLoaded', () => {
         `), 'No developer audit events yet.');
     };
 
+    const renderCurrentDailyWord = (word) => {
+        const el = document.getElementById('currentDailyWordCard');
+        if (!el) return;
+        if (!word) {
+            el.innerHTML = '<div class="developer-empty"><i class="fas fa-calendar-xmark"></i><span>No Daily Word has published yet today.</span></div>';
+            return;
+        }
+        el.innerHTML = `
+            <article class="scheduled-content-card scheduled-word-card scheduled-card-live">
+                <div class="scheduled-card-meta">
+                    <span><i class="fas fa-clock" aria-hidden="true"></i> ${escapeHtml(formatJamaicaDate(word.release_at))}</span>
+                    ${statusBadge('published')}
+                </div>
+                <h4>${escapeHtml(word.title || 'Daily Word')}</h4>
+                <p>${escapeHtml(word.message || '')}</p>
+                <div class="scheduled-scripture"><i class="fas fa-book-bible" aria-hidden="true"></i><span>${escapeHtml(word.scripture_reference || '')}</span>${word.topic ? `<small>${escapeHtml(word.topic)}</small>` : ''}</div>
+                ${word.has_study_quiz ? '<div class="scheduled-quiz-summary"><span><i class="fas fa-graduation-cap" aria-hidden="true"></i> Today\'s quiz studies this chapter</span></div>' : ''}
+            </article>
+        `;
+    };
+
+    const renderCurrentQuizzes = (quizzes) => {
+        const el = document.getElementById('currentQuizList');
+        if (!el) return;
+        const list = normalizeList(quizzes);
+        if (!list.length) {
+            el.innerHTML = '<div class="developer-empty"><i class="fas fa-calendar-xmark"></i><span>No Bible Quiz has published yet today.</span></div>';
+            return;
+        }
+        el.innerHTML = list.map((quiz) => {
+            const questionCount = quiz.question_count ?? normalizeList(quiz.questions).length;
+            return `
+                <article class="scheduled-content-card scheduled-quiz-card scheduled-card-live">
+                    <div class="scheduled-card-meta">
+                        <span><i class="fas fa-clock" aria-hidden="true"></i> ${escapeHtml(formatJamaicaDate(quiz.release_at))}</span>
+                        ${statusBadge('published')}
+                    </div>
+                    <h4>${escapeHtml(quiz.church_name || (quiz.scope === 'global' ? 'Grace Connect Global' : 'Church-specific quiz'))}</h4>
+                    <div class="scheduled-quiz-summary">
+                        <span><i class="fas fa-circle-question" aria-hidden="true"></i> ${questionCount} questions</span>
+                        <span><i class="fas fa-eye-slash" aria-hidden="true"></i> Answers hidden</span>
+                    </div>
+                    <details>
+                        <summary>Preview all questions</summary>
+                        <ol class="scheduled-question-list">
+                            ${normalizeList(quiz.questions).map((question) => `
+                                <li>
+                                    <strong>${escapeHtml(question.question || '')}</strong>
+                                    <small>${normalizeList(question.options).map((option) => escapeHtml(option)).join(' · ')}</small>
+                                </li>
+                            `).join('')}
+                        </ol>
+                    </details>
+                </article>
+            `;
+        }).join('');
+    };
+
+    // Both prepare crons run at fixed UTC times year-round (Jamaica has no
+    // DST, so these never shift). Countdown is computed client-side purely
+    // from those constants -- no backend round trip needed to keep it live.
+    const GENERATION_SCHEDULE_UTC = {
+        dailyWordPrepare: { hour: 1, minute: 15 },
+        quizPrepare: { hour: 1, minute: 40 },
+    };
+
+    const nextOccurrenceOf = (hour, minute) => {
+        const target = new Date();
+        target.setUTCHours(hour, minute, 0, 0);
+        if (target.getTime() <= Date.now()) {
+            target.setUTCDate(target.getUTCDate() + 1);
+        }
+        return target;
+    };
+
+    const formatCountdown = (msRemaining) => {
+        const totalSeconds = Math.max(0, Math.floor(msRemaining / 1000));
+        const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+        const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+        const seconds = String(totalSeconds % 60).padStart(2, '0');
+        return `${hours}:${minutes}:${seconds}`;
+    };
+
+    let generationCountdownTimer = null;
+    const startGenerationCountdown = () => {
+        if (generationCountdownTimer) return;
+        const tick = () => {
+            const wordEl = document.getElementById('countdownWordPrepare');
+            const quizEl = document.getElementById('countdownQuizPrepare');
+            if (!wordEl && !quizEl) return;
+            const now = Date.now();
+            if (wordEl) {
+                const target = nextOccurrenceOf(
+                    GENERATION_SCHEDULE_UTC.dailyWordPrepare.hour,
+                    GENERATION_SCHEDULE_UTC.dailyWordPrepare.minute,
+                );
+                wordEl.textContent = formatCountdown(target.getTime() - now);
+            }
+            if (quizEl) {
+                const target = nextOccurrenceOf(
+                    GENERATION_SCHEDULE_UTC.quizPrepare.hour,
+                    GENERATION_SCHEDULE_UTC.quizPrepare.minute,
+                );
+                quizEl.textContent = formatCountdown(target.getTime() - now);
+            }
+        };
+        tick();
+        generationCountdownTimer = setInterval(tick, 1000);
+    };
+
     const loadScheduledContent = async () => {
         setLoading('scheduledDailyWordList', 'Loading Daily Word schedule');
         setLoading('scheduledQuizList', 'Loading Bible Quiz schedule');
         const data = await rpc('developer_list_scheduled_content', { p_days: 14 });
+        renderCurrentDailyWord(data?.current_daily_word || null);
+        renderCurrentQuizzes(data?.current_quizzes);
+        startGenerationCountdown();
         const now = Date.now();
         const isUpcoming = (item) => {
             const releaseTime = new Date(item?.release_at).getTime();

@@ -27,12 +27,22 @@
     box-sizing: border-box;
 }
 
+html {
+    overflow-x: hidden;
+}
+
+img, svg, video {
+    max-width: 100%;
+    height: auto;
+}
+
 body {
     font-family: var(--font-body);
     background-color: var(--color-ivory);
     color: var(--color-text-main);
     line-height: 1.6;
     overflow-x: hidden;
+    overflow-wrap: break-word;
     position: relative;
 }
 
@@ -2875,6 +2885,69 @@ h1, h2, h3, h4, h5 {
     background: linear-gradient(135deg, rgba(32,79,182,.08), rgba(210,168,38,.08));
 }
 
+.developer-subsection-heading {
+    margin: 26px 0 14px;
+}
+
+.developer-subsection-heading h3 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 1.05rem;
+    margin-bottom: 3px;
+}
+
+.developer-subsection-heading h3 i {
+    color: #204fb6;
+}
+
+.developer-subsection-heading p {
+    color: #718096;
+    font-size: .85rem;
+}
+
+.scheduled-card-live {
+    border-color: rgba(47, 147, 104, .3);
+    background: linear-gradient(135deg, rgba(47,147,104,.05), #fbfcfe 55%);
+}
+
+.content-countdown-card {
+    align-items: center;
+}
+
+.content-countdown-grid {
+    display: flex;
+    gap: 22px;
+    flex-shrink: 0;
+}
+
+.content-countdown-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    gap: 2px;
+}
+
+.content-countdown-item span {
+    font-size: .74rem;
+    font-weight: 700;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+}
+
+.content-countdown-item b {
+    font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
+    color: #1a2b4c;
+}
+
+.content-countdown-item small {
+    font-size: .74rem;
+    color: #9aa8bd;
+}
+
 .content-policy-copy,
 .scheduled-column-heading,
 .scheduled-card-meta,
@@ -3602,6 +3675,15 @@ h1, h2, h3, h4, h5 {
     .content-policy-card {
         align-items: flex-start;
         flex-direction: column;
+    }
+    .content-countdown-grid {
+        width: 100%;
+        gap: 14px;
+    }
+    .content-countdown-item {
+        flex: 1;
+        align-items: flex-start;
+        text-align: left;
     }
     .finance-kpi-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
