@@ -341,6 +341,13 @@ h1, h2, h3, h4, h5 {
     inset: 0;
     overflow: hidden;
     z-index: -1;
+    /* Single source of truth for the phone mockup's own position/width, so
+       the floating activity panels can be derived from it below instead of
+       guessing independent right offsets that only avoid the phone at some
+       viewport widths and collide with it at others. */
+    --phone-right: max(32px, calc((100vw - 1280px) / 2));
+    --phone-width: min(360px, 28vw);
+    --panel-right: calc(var(--phone-right) + var(--phone-width) + 28px);
 }
 
 .hero-scene::before {
@@ -610,21 +617,26 @@ h1, h2, h3, h4, h5 {
     box-shadow: 0 18px 48px rgba(0,0,0,0.18);
 }
 
+.scene-panel-feed,
+.scene-panel-prayer,
+.scene-panel-approval {
+    /* All three share the phone-derived offset so none of them can ever
+       land underneath the phone mockup, regardless of viewport width. */
+    right: var(--panel-right);
+}
+
 .scene-panel-feed {
     top: 46%;
-    right: min(430px, 32vw);
     animation: panelFloat 5.4s ease-in-out infinite;
 }
 
 .scene-panel-prayer {
     top: 26%;
-    right: 120px;
     animation: panelFloat 6.2s ease-in-out 0.4s infinite;
 }
 
 .scene-panel-approval {
     bottom: 20%;
-    right: 210px;
     animation: panelFloat 5.8s ease-in-out 0.8s infinite;
 }
 
@@ -1364,9 +1376,6 @@ h1, h2, h3, h4, h5 {
         top: 190px;
         width: 300px;
         opacity: 0.48;
-    }
-    .scene-panel {
-        display: none;
     }
     .hero-proof {
         grid-template-columns: repeat(3, 1fr);
@@ -2447,6 +2456,10 @@ h1, h2, h3, h4, h5 {
     color: #68778d;
 }
 
+.home-page .hero-scene {
+    --phone-width: min(374px, 30vw);
+}
+
 .home-page .live-phone {
     top: 154px;
     width: min(374px, 30vw);
@@ -2502,8 +2515,9 @@ h1, h2, h3, h4, h5 {
     backdrop-filter: blur(12px);
 }
 
-.home-page .scene-panel-feed {
-    right: min(470px, 34vw);
+.home-page .scene-panel-feed,
+.home-page .scene-panel-prayer,
+.home-page .scene-panel-approval {
     max-width: 230px;
 }
 
@@ -3607,6 +3621,14 @@ h1, h2, h3, h4, h5 {
     }
     .home-page .live-phone {
         width: 34vw;
+    }
+    .scene-panel {
+        /* Below this width the phone and hero copy text column sit close
+           enough together that the floating activity panels no longer have
+           a safe gap between them; hiding them here (rather than only at
+           992px) removes the collision risk instead of chasing it with
+           smaller and smaller magic numbers. */
+        display: none;
     }
     .home-page .pricing-bento {
         grid-template-columns: 1fr;
