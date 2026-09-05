@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    if (window.gcRecoveryRedirecting) return;
     const client = window.gcSupabase;
     const titleEl = document.getElementById('authCallbackTitle');
     const messageEl = document.getElementById('authCallbackMessage');

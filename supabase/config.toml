@@ -1,0 +1,4 @@
+[functions.developer-password-recovery]
+# The function validates the bearer token with Auth and checks live developer roles.
+# Manual verification supports the project's modern JWT signing keys.
+verify_jwt = false

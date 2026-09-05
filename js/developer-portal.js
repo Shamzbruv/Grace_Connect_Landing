@@ -68,6 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
         String(state.session?.developer_role || '').toLowerCase()
     );
 
+    const canRecoverPasswords = () => ['super_developer', 'support_developer', 'security_admin'].includes(state.session?.developer_role);
+    const recoveryButton = (id, email) => canRecoverPasswords() ? `<button class="developer-icon-btn" title="Create temporary password" aria-label="Create temporary password for ${escapeHtml(email)}" data-action="create-temporary-password" data-id="${escapeHtml(id)}" data-email="${escapeHtml(email)}"><i class="fas fa-key"></i></button>` : '';
+
     const formatNumber = (value) => new Intl.NumberFormat().format(Number(value) || 0);
 
     const formatMoney = (value, currency = 'USD') => {
@@ -617,6 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="developer-action-row">
                             ${user.pendingMembershipId ? `<button class="developer-icon-btn" title="Approve member" data-action="approve-member" data-id="${escapeHtml(user.pendingMembershipId)}"><i class="fas fa-user-check"></i></button>` : ''}
                             <button class="developer-icon-btn" title="Change roles and privileges" data-action="edit-user-access" data-user="${escapeAttrJson(user)}"><i class="fas fa-user-gear"></i></button>
+                            ${recoveryButton(user.id, user.email)}
                             <button class="developer-icon-btn danger" title="Delete account from Supabase" data-action="delete-user" data-id="${escapeHtml(user.id)}" data-email="${escapeHtml(user.email)}"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
@@ -1343,6 +1347,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                             <div class="developer-action-row">
                                                 ${String(member.membership_status || '').toLowerCase() === 'pending' ? `<button class="developer-icon-btn" title="Approve member" data-action="approve-member" data-id="${escapeHtml(member.membership_id)}"><i class="fas fa-user-check"></i></button>` : ''}
                                                 <button class="developer-icon-btn" title="Change roles and privileges" data-action="edit-user-access" data-user="${escapeAttrJson(memberUser)}"><i class="fas fa-user-gear"></i></button>
+                                                ${recoveryButton(member.user_id, member.email)}
                                                 <button class="developer-icon-btn danger" title="Delete account from Supabase" data-action="delete-user" data-id="${escapeHtml(member.user_id)}" data-email="${escapeHtml(member.email || '')}"><i class="fas fa-trash"></i></button>
                                             </div>
                                         </td>
@@ -1484,6 +1489,31 @@ document.addEventListener('DOMContentLoaded', () => {
         button.disabled = true;
 
         try {
+            if (action === 'create-temporary-password') {
+                if (!canRecoverPasswords()) throw new Error('Your developer role cannot issue temporary passwords.');
+                if (!window.confirm(`Create a single-use temporary recovery password for ${email}? Verify the person's identity before sharing it. They will use it on the website to choose a new app password.`)) return;
+                const result = await invokeFunction('developer-password-recovery', { user_id: id });
+                openModal('Temporary recovery password', `
+                    <p>Created for <strong>${escapeHtml(result.email)}</strong>. Share it privately with the verified account owner.</p>
+                    <label for="temporaryRecoveryCopy">Copy this temporary password</label>
+                    <textarea id="temporaryRecoveryCopy" class="developer-wide-control" rows="3" readonly spellcheck="false">${escapeHtml(result.temporary_password)}</textarea>
+                    <p>Use once at <a href="https://graceconnect.love/reset-password.html" target="_blank" rel="noopener noreferrer">graceconnect.love/reset-password.html</a> within one hour. Choose “I have a temporary password”, paste it, then set a new password for the app.</p>
+                    <p>This temporary password is for website recovery. The user's current password stays unchanged until they save a new one. It is not saved in this portal.</p>
+                    <p id="temporaryCopyStatus" role="status"></p>
+                `, '<button class="btn btn-primary" data-action="copy-temporary-password">Copy temporary password</button><button class="btn btn-secondary" data-close-modal="true">Close</button>');
+                return;
+            }
+            if (action === 'copy-temporary-password') {
+                const field = document.getElementById('temporaryRecoveryCopy');
+                try {
+                    await navigator.clipboard.writeText(field.value);
+                    document.getElementById('temporaryCopyStatus').textContent = 'Temporary password copied.';
+                } catch (_) {
+                    field.focus(); field.select();
+                    document.getElementById('temporaryCopyStatus').textContent = 'Press Copy or Ctrl+C to copy the selected password.';
+                }
+                return;
+            }
             if (action === 'view-church') {
                 await renderChurchDetail(id);
                 return;
