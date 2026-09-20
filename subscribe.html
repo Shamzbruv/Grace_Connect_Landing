@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,follow">
+    <title>Subscribe | Grace Connect</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css?v=20260920-subscription-checkout">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="home-page subscription-request-page">
+    <nav class="navbar" aria-label="Primary navigation">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <img src="assets/logo.png" alt="Grace Connect">
+                <span>Grace Connect</span>
+            </a>
+            <div class="subscription-nav-actions">
+                <a href="index.html#pricing" class="btn btn-secondary"><i class="fas fa-arrow-left" aria-hidden="true"></i> Pricing</a>
+                <a href="manage-subscription.html" class="btn btn-secondary">Manage subscription</a>
+                <button type="button" class="btn btn-secondary" id="subscribeSignOut" hidden>Sign out</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="subscription-request-main">
+        <section class="subscription-request-hero" aria-labelledby="subscribe-title">
+            <div class="container subscription-request-hero-grid">
+                <div>
+                    <span class="section-eyebrow">Secure church checkout</span>
+                    <h1 id="subscribe-title">Start your church subscription</h1>
+                    <p>Pay for your Grace Connect plan here on the web. Your plan is verified against your church's active member count, and access is activated automatically once the payment is confirmed.</p>
+                    <div class="request-only-banner">
+                        <i class="fas fa-lock" aria-hidden="true"></i>
+                        <div>
+                            <strong>Card details never touch Grace Connect.</strong>
+                            <span>Payment is completed on our payment provider's secure page. We receive only a confirmation that the payment succeeded, plus the last four digits for your receipt.</span>
+                        </div>
+                    </div>
+                </div>
+                <aside class="subscription-request-who">
+                    <i class="fas fa-user-lock" aria-hidden="true"></i>
+                    <h2>Authorised church leaders only</h2>
+                    <p>Sign in with the same Grace Connect account you use in the app. Your active membership, church role, and member count are verified by the server before any amount is calculated.</p>
+                    <small>Pastors, administrators, treasurers, and finance officers.</small>
+                </aside>
+            </div>
+        </section>
+
+        <section class="subscription-request-content">
+            <div class="container subscription-request-layout">
+                <section class="subscription-auth-card" id="subscribeAuthPanel" aria-labelledby="subscribe-sign-in-title">
+                    <div class="subscription-card-heading">
+                        <span><i class="fas fa-key" aria-hidden="true"></i></span>
+                        <div>
+                            <h2 id="subscribe-sign-in-title">Sign in to continue</h2>
+                            <p>Use your existing Grace Connect app credentials. This is the same account and password.</p>
+                        </div>
+                    </div>
+                    <form id="subscribeSignInForm" class="subscription-intake-form">
+                        <label>
+                            <span>Email address</span>
+                            <input type="email" id="subscribeLoginEmail" autocomplete="username" maxlength="320" required>
+                        </label>
+                        <label>
+                            <span>Password</span>
+                            <input type="password" id="subscribeLoginPassword" autocomplete="current-password" minlength="8" required>
+                        </label>
+                        <button type="submit" class="btn btn-primary" id="subscribeLoginButton">Sign in</button>
+                    </form>
+                    <p class="subscription-form-message" id="subscribeAuthMessage" role="status" aria-live="polite"></p>
+                    <p class="subscription-auth-help"><a href="reset-password.html">Forgot your password?</a></p>
+                </section>
+
+                <section id="subscribeWorkspace" class="subscription-workspace" hidden>
+                    <div class="subscription-context-grid">
+                        <article>
+                            <span>Approved church</span>
+                            <strong id="subscribeChurchName">—</strong>
+                        </article>
+                        <article>
+                            <span>Active members</span>
+                            <strong id="subscribeMemberCount">—</strong>
+                        </article>
+                        <article>
+                            <span>Verified plan</span>
+                            <strong id="subscribeTierLabel">—</strong>
+                        </article>
+                        <article>
+                            <span>Monthly price</span>
+                            <strong id="subscribeTierPrice">—</strong>
+                        </article>
+                    </div>
+
+                    <div class="subscription-workspace-grid">
+                        <section class="subscription-intake-card" aria-labelledby="subscribe-pay-title">
+                            <div class="subscription-card-heading">
+                                <span><i class="fas fa-credit-card" aria-hidden="true"></i></span>
+                                <div>
+                                    <h2 id="subscribe-pay-title">Confirm and pay</h2>
+                                    <p>Your plan follows your church's active member count, so there is nothing to choose except how you would like to be billed.</p>
+                                </div>
+                            </div>
+
+                            <div id="subscribeExistingNotice" class="subscription-intent-pill" hidden></div>
+
+                            <form id="subscribeForm" class="subscription-intake-form">
+                                <fieldset class="subscribe-currency-fieldset">
+                                    <legend>Billing currency</legend>
+                                    <label class="subscribe-currency-option">
+                                        <input type="radio" name="subscribeCurrency" value="USD" checked>
+                                        <span><strong>US Dollars</strong><small id="subscribeUsdAmount">—</small></span>
+                                    </label>
+                                    <label class="subscribe-currency-option">
+                                        <input type="radio" name="subscribeCurrency" value="JMD">
+                                        <span><strong>Jamaican Dollars</strong><small id="subscribeJmdAmount">—</small></span>
+                                    </label>
+                                </fieldset>
+
+                                <label class="subscription-request-consent">
+                                    <input type="checkbox" id="subscribeTermsAccepted" required>
+                                    <span>I am authorised to make this payment for my church. I understand this is a monthly subscription that renews until cancelled, and that I can cancel at any time from the <a href="manage-subscription.html">manage subscription</a> page. I have read the <a href="terms.html" target="_blank" rel="noopener">Grace Connect terms</a>.</span>
+                                </label>
+
+                                <button type="submit" class="btn btn-primary" id="subscribePayButton">Continue to secure payment</button>
+                            </form>
+                            <p class="subscription-form-message" id="subscribeMessage" role="status" aria-live="polite"></p>
+                        </section>
+
+                        <aside class="subscription-existing-card" aria-labelledby="subscribe-what-happens-title">
+                            <div class="subscription-card-heading">
+                                <span><i class="fas fa-list-check" aria-hidden="true"></i></span>
+                                <div>
+                                    <h2 id="subscribe-what-happens-title">What happens next</h2>
+                                    <p>Three steps, and the last one is automatic.</p>
+                                </div>
+                            </div>
+                            <ol class="subscribe-steps">
+                                <li><strong>You pay securely.</strong> We send you to our payment provider's page with the amount locked in. It cannot be edited.</li>
+                                <li><strong>We confirm the payment.</strong> The provider notifies Grace Connect directly, so confirmation does not depend on your browser staying open.</li>
+                                <li><strong>Your church is activated.</strong> Billing details and the paid-through date appear in the app and on the manage page, and the finance team's records update automatically.</li>
+                            </ol>
+                            <p class="subscribe-enterprise-note">Over 1,000 members? Enterprise plans are priced individually — <a href="subscription-request.html">request a quote</a> instead.</p>
+                        </aside>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-bottom">
+            <p>&copy; 2026 Grace Connect. Subscription payments are processed by our secure payment provider.</p>
+            <div><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="support-policy.html">Support</a></div>
+        </div>
+    </footer>
+
+    <script src="js/supabase-config.js?v=20260920-subscription-checkout"></script>
+    <script src="js/subscribe.js?v=20260920-subscription-checkout"></script>
+</body>
+</html>

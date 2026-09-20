@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,follow">
+    <title>Manage Subscription | Grace Connect</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css?v=20260920-subscription-checkout">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="home-page subscription-request-page">
+    <nav class="navbar" aria-label="Primary navigation">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <img src="assets/logo.png" alt="Grace Connect">
+                <span>Grace Connect</span>
+            </a>
+            <div class="subscription-nav-actions">
+                <a href="index.html#pricing" class="btn btn-secondary"><i class="fas fa-arrow-left" aria-hidden="true"></i> Pricing</a>
+                <button type="button" class="btn btn-secondary" id="manageSignOut" hidden>Sign out</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="subscription-request-main">
+        <section class="subscription-request-hero" aria-labelledby="manage-title">
+            <div class="container subscription-request-hero-grid">
+                <div>
+                    <span class="section-eyebrow">Subscription management</span>
+                    <h1 id="manage-title">Manage your church subscription</h1>
+                    <p>Review what your church is being billed, when the next payment is due, and cancel if you need to. Cancelling never ends your access early — your church keeps everything through the date you have already paid for.</p>
+                </div>
+                <aside class="subscription-request-who">
+                    <i class="fas fa-mobile-screen" aria-hidden="true"></i>
+                    <h2>Same sign-in as the app</h2>
+                    <p>Use the exact email and password you use to sign in to Grace Connect on your phone. There is no separate website account to create.</p>
+                    <small>Pastors, administrators, treasurers, and finance officers.</small>
+                </aside>
+            </div>
+        </section>
+
+        <section class="subscription-request-content">
+            <div class="container subscription-request-layout">
+                <section class="subscription-auth-card" id="manageAuthPanel" aria-labelledby="manage-sign-in-title">
+                    <div class="subscription-card-heading">
+                        <span><i class="fas fa-key" aria-hidden="true"></i></span>
+                        <div>
+                            <h2 id="manage-sign-in-title">Sign in to manage your subscription</h2>
+                            <p>Use your existing Grace Connect app credentials. This is the same account and password.</p>
+                        </div>
+                    </div>
+                    <form id="manageSignInForm" class="subscription-intake-form">
+                        <label>
+                            <span>Email address</span>
+                            <input type="email" id="manageLoginEmail" autocomplete="username" maxlength="320" required>
+                        </label>
+                        <label>
+                            <span>Password</span>
+                            <input type="password" id="manageLoginPassword" autocomplete="current-password" minlength="8" required>
+                        </label>
+                        <button type="submit" class="btn btn-primary" id="manageLoginButton">Sign in</button>
+                    </form>
+                    <p class="subscription-form-message" id="manageAuthMessage" role="status" aria-live="polite"></p>
+                    <p class="subscription-auth-help"><a href="reset-password.html">Forgot your password?</a></p>
+                </section>
+
+                <section id="manageWorkspace" class="subscription-workspace" hidden>
+                    <div class="subscription-context-grid">
+                        <article>
+                            <span>Church</span>
+                            <strong id="manageChurchName">—</strong>
+                        </article>
+                        <article>
+                            <span>Status</span>
+                            <strong id="manageStatus">—</strong>
+                        </article>
+                        <article>
+                            <span>Monthly amount</span>
+                            <strong id="manageAmount">—</strong>
+                        </article>
+                        <article>
+                            <span>Paid through</span>
+                            <strong id="managePaidThrough">—</strong>
+                        </article>
+                    </div>
+
+                    <div class="subscription-workspace-grid">
+                        <section class="subscription-intake-card" aria-labelledby="manage-billing-title">
+                            <div class="subscription-card-heading">
+                                <span><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i></span>
+                                <div>
+                                    <h2 id="manage-billing-title">Billing &amp; financial details</h2>
+                                    <p>What the finance team's records show for your church right now.</p>
+                                </div>
+                            </div>
+                            <dl class="manage-billing-list" id="manageBillingList"></dl>
+
+                            <div id="manageNoSubscription" class="manage-empty" hidden>
+                                <p>Your church does not have an active paid subscription yet.</p>
+                                <a class="btn btn-primary" href="subscribe.html">Start a subscription</a>
+                            </div>
+
+                            <div id="manageCancelSection" hidden>
+                                <h3 class="manage-cancel-heading">Cancel this subscription</h3>
+                                <p class="manage-cancel-copy" id="manageCancelCopy"></p>
+                                <form id="manageCancelForm" class="subscription-intake-form">
+                                    <label>
+                                        <span>Why are you cancelling? <small>(optional, helps us improve)</small></span>
+                                        <textarea id="manageCancelReason" rows="3" maxlength="4000" placeholder="Anything you would like the team to know"></textarea>
+                                    </label>
+                                    <label class="subscription-request-consent">
+                                        <input type="checkbox" id="manageCancelConfirm" required>
+                                        <span>I understand my church's plan will not renew, and that access continues until the paid-through date shown above.</span>
+                                    </label>
+                                    <button type="submit" class="btn btn-secondary" id="manageCancelButton">Cancel my subscription</button>
+                                </form>
+                            </div>
+
+                            <div id="manageCancelScheduled" class="manage-cancel-scheduled" hidden></div>
+
+                            <p class="subscription-form-message" id="manageMessage" role="status" aria-live="polite"></p>
+                        </section>
+
+                        <aside class="subscription-existing-card" aria-labelledby="manage-history-title">
+                            <div class="subscription-card-heading">
+                                <span><i class="fas fa-clock-rotate-left" aria-hidden="true"></i></span>
+                                <div>
+                                    <h2 id="manage-history-title">Billing history</h2>
+                                    <p>Recent activity on this church's subscription.</p>
+                                </div>
+                            </div>
+                            <div id="manageHistory" class="subscription-request-history"></div>
+                            <p class="subscribe-enterprise-note">Need an invoice, a receipt, or a plan change? <a href="subscription-request.html">Contact the finance team</a>.</p>
+                        </aside>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-bottom">
+            <p>&copy; 2026 Grace Connect. Subscription records are maintained by the platform finance team.</p>
+            <div><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="support-policy.html">Support</a></div>
+        </div>
+    </footer>
+
+    <script src="js/supabase-config.js?v=20260920-subscription-checkout"></script>
+    <script src="js/manage-subscription.js?v=20260920-subscription-checkout"></script>
+</body>
+</html>
