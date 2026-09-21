@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <i class="fas fa-circle-check" aria-hidden="true"></i>
                 <div>
                     <strong>This subscription is scheduled to end.</strong>
-                    <span>Your church keeps full access until ${formatDate(subscription.cancellationEffectiveAt)}. If you separately arranged recurring charges, contact billing to confirm they have stopped. To stay on Grace Connect, <a href="subscribe.html">start a new plan</a> or <a href="subscription-request.html">contact the finance team</a>.</span>
+                    <span>Your church keeps full access until ${formatDate(subscription.cancellationEffectiveAt)}. If you separately arranged recurring charges, contact billing to confirm they have stopped. You can <a href="subscribe.html">add another paid month</a> or <a href="subscription-request.html">contact the finance team</a> to withdraw your cancellation request.</span>
                 </div>
             `;
             return;
