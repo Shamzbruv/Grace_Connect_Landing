@@ -103,10 +103,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        if (context.checkoutReady !== true) {
+            setMessage(payMessage, 'Online payment is not available yet. Please contact Grace Connect billing for help with your plan.', 'notice');
+            if (payButton) payButton.disabled = true;
+        }
+
         if (subscription && subscription.status === 'active') {
             existingNotice.hidden = false;
             existingNotice.textContent = subscription.cancellationEffectiveAt
-                ? `This church already has an active plan, ending ${formatDate(subscription.cancellationEffectiveAt)}. Paying again will start a new plan.`
+                ? `This church has a pending cancellation and access paid through ${formatDate(subscription.currentPeriodEnd)}. Another payment adds paid time; it does not withdraw the cancellation request.`
                 : `This church already has an active plan paid through ${formatDate(subscription.currentPeriodEnd)}.`;
         } else {
             existingNotice.hidden = true;
@@ -122,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             workspace.hidden = false;
             signOutButton.hidden = false;
             renderContext();
-            setMessage(payMessage, '');
+            if (!context?.calculatedTier?.customQuote && context?.checkoutReady === true) setMessage(payMessage, '');
         } catch (error) {
             // A signed-in member who is not a church leader lands here. They
             // are authenticated, so the sign-in form would be misleading.
@@ -131,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setMessage(authMessage, error.message, 'error');
         } finally {
             setButtonBusy(payButton, false, 'Loading…', 'Continue to secure payment');
+            if (payButton) payButton.disabled = context?.checkoutReady !== true || context?.calculatedTier?.customQuote === true;
         }
     };
 
@@ -165,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     payForm?.addEventListener('submit', async (event) => {
         event.preventDefault();
+        if (payButton?.disabled || context?.checkoutReady !== true || context?.calculatedTier?.customQuote) return;
         if (!document.getElementById('subscribeTermsAccepted').checked) {
             setMessage(payMessage, 'Please confirm the terms to continue.', 'error');
             return;

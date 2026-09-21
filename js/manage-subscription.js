@@ -46,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return error?.message || 'Request failed.';
     };
 
+    const escapeHtml = value => String(value ?? '').replace(/[&<>\"']/g, character => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '\"':'&quot;', "'":'&#39;'}[character]));
+
     const formatDate = (value) => {
         if (!value) return '—';
         const date = new Date(value);
@@ -133,8 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         billingList.innerHTML = rows.map(([term, value]) => `
             <div class="manage-billing-row">
-                <dt>${term}</dt>
-                <dd>${String(value)}</dd>
+                <dt>${escapeHtml(term)}</dt>
+                <dd>${escapeHtml(value)}</dd>
             </div>
         `).join('');
     };
@@ -146,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         history.innerHTML = events.map((event) => `
             <article class="subscription-request-history-item">
-                <strong>${eventLabel(event.eventType)}</strong>
+                <strong>${escapeHtml(eventLabel(event.eventType))}</strong>
                 <span>${formatDate(event.createdAt)}</span>
             </article>
         `).join('');
@@ -189,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <i class="fas fa-circle-check" aria-hidden="true"></i>
                 <div>
                     <strong>This subscription is scheduled to end.</strong>
-                    <span>Your church keeps full access until ${formatDate(subscription.cancellationEffectiveAt)}. Nothing further will be charged. To stay on Grace Connect, <a href="subscribe.html">start a new plan</a> or <a href="subscription-request.html">contact the finance team</a>.</span>
+                    <span>Your church keeps full access until ${formatDate(subscription.cancellationEffectiveAt)}. If you separately arranged recurring charges, contact billing to confirm they have stopped. To stay on Grace Connect, <a href="subscribe.html">start a new plan</a> or <a href="subscription-request.html">contact the finance team</a>.</span>
                 </div>
             `;
             return;
@@ -198,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelScheduled.hidden = true;
         cancelSection.hidden = subscription.canCancelOnline !== true;
         document.getElementById('manageCancelCopy').textContent =
-            `Your church keeps full access until ${formatDate(subscription.currentPeriodEnd)}. After that date the plan simply stops; nothing else is charged.`;
+            `Your church keeps full access until ${formatDate(subscription.currentPeriodEnd)}. Any recurring arrangement with the payment provider needs a separate cancellation confirmation from billing.`;
     };
 
     const showWorkspace = async () => {
@@ -266,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 message,
                 data.alreadyScheduled
                     ? `This subscription was already scheduled to end on ${formatDate(data.effectiveAt)}.`
-                    : `Cancelled. Your church keeps access until ${formatDate(data.effectiveAt)}.`,
+                    : (data.notice || `Cancellation recorded. Your church keeps access until ${formatDate(data.effectiveAt)}.`),
                 'success',
             );
         } catch (error) {
