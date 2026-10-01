@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/style.css?v=20260811-finance-bento">
+    <link rel="stylesheet" href="../css/style.css?v=20260930-operations">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="developer-portal-page">
@@ -25,6 +25,8 @@
             <button class="developer-nav-btn" data-view="requests"><i class="fas fa-clipboard-check"></i><span>Church Requests</span></button>
             <button class="developer-nav-btn" data-view="issues"><i class="fas fa-bug"></i><span>Issues</span></button>
             <button class="developer-nav-btn" data-view="content"><i class="fas fa-calendar-day"></i><span>Daily Content</span></button>
+            <button class="developer-nav-btn" data-view="backgrounds"><i class="fas fa-images"></i><span>Sharing Images</span></button>
+            <button class="developer-nav-btn" data-view="operations"><i class="fas fa-sliders"></i><span>Operations</span></button>
             <button class="developer-nav-btn" id="developerFinanceNav" data-view="finance" hidden><i class="fas fa-chart-pie"></i><span>Financial</span></button>
             <button class="developer-nav-btn" data-view="users"><i class="fas fa-users"></i><span>Users</span></button>
             <button class="developer-nav-btn" data-view="developers"><i class="fas fa-user-shield"></i><span>Developers</span></button>
@@ -325,6 +327,16 @@
             <div id="developerAccountList" class="developer-table-shell"></div>
         </section>
 
+        <section class="developer-view" id="view-backgrounds">
+            <div class="developer-section-heading"><div><h2>Sharing backgrounds</h2><p>Images available when members share Bible verses and Daily Word reflections. Changes reach the app within five minutes.</p></div><button class="btn btn-secondary" data-refresh="backgrounds">Refresh</button></div>
+            <div id="backgroundTools"></div>
+        </section>
+
+        <section class="developer-view" id="view-operations">
+            <div class="developer-section-heading"><div><h2>Platform operations</h2><p>Payment readiness, delivery health, media cleanup and the one-time launch reset.</p></div><button class="btn btn-secondary" data-refresh="operations">Refresh</button></div>
+            <div id="operationsTools"></div>
+        </section>
+
         <section class="developer-view" id="view-audit">
             <div class="developer-section-heading">
                 <div>
@@ -354,6 +366,7 @@
     </div>
 
     <script src="../js/supabase-config.js?v=20260630-1"></script>
-    <script src="../js/developer-portal.js?v=20260905-recovery"></script>
+    <script src="../js/developer-tools.js?v=20260930-1"></script>
+    <script src="../js/developer-portal.js?v=20260930-1"></script>
 </body>
 </html>

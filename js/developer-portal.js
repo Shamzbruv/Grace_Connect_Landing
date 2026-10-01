@@ -1458,6 +1458,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (state.activeView === 'users') await loadUsers();
             if (state.activeView === 'developers') await loadDeveloperAccounts();
             if (state.activeView === 'audit') await loadAudit();
+            if (state.activeView === 'backgrounds') await window.GraceDeveloperTools.loadBackgrounds(client, state.session);
+            if (state.activeView === 'operations') await window.GraceDeveloperTools.loadOperations(client, state.session);
         } catch (error) {
             showMessage('developerPortalMessage', error.message || 'Unable to load developer portal data.', 'error');
         }

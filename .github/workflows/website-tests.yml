@@ -1,0 +1,16 @@
+name: Website tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  regression-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.22.2'
+      - run: node --check js/developer-tools.js
+      - run: node --test tests/*.test.cjs
