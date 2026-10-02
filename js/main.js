@@ -324,30 +324,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    // --- Global: Mobile Menu ---
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const navLinks = document.getElementById('navLinks');
-    
-    if (mobileMenuBtn && navLinks) {
-        const setMenuOpen = (isOpen) => {
-            navLinks.classList.toggle('active', isOpen);
-            mobileMenuBtn.setAttribute('aria-expanded', String(isOpen));
-            mobileMenuBtn.setAttribute('aria-label', isOpen ? 'Close navigation' : 'Open navigation');
-            const icon = mobileMenuBtn.querySelector('i');
-            if (isOpen) {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-times');
-            } else {
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
-            }
-        };
-        mobileMenuBtn.addEventListener('click', () => {
-            setMenuOpen(!navLinks.classList.contains('active'));
-        });
-        navLinks.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenuOpen(false)));
-    }
-
     // --- Global: Navbar Scroll Effect ---
     const navbar = document.getElementById('navbar');
     if (navbar) {
