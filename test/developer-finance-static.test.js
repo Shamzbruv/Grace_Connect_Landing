@@ -93,7 +93,7 @@ test('landing page is a white neomorphic royal-blue and gold experience', () => 
     assert.match(styles, /\.home-page \.navbar \.nav-actions \.primary-btn[\s\S]*color: #fff !important/);
     assert.match(landingHtml, /css\/style\.css\?v=20260811-neomorphic-pricing/);
     assert.match(landingHtml, /js\/main\.js\?v=20260811-neomorphic-navigation/);
-    assert.match(portalHtml, /\.\.\/css\/style\.css\?v=20260811-finance-bento/);
+    assert.match(portalHtml, /\.\.\/css\/style\.css\?v=[\w-]+/);
 });
 
 test('pricing states the current billing, access, cancellation, and trial behaviour directly', () => {

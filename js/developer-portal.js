@@ -282,6 +282,10 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         const financeNav = document.getElementById('developerFinanceNav');
         if (financeNav) financeNav.hidden = !canManageFinancials();
+        const experienceNav = document.querySelector('[data-view="experience"]');
+        const preparationNav = document.querySelector('[data-view="preparation"]');
+        if (experienceNav) experienceNav.hidden = !canRecoverPasswords();
+        if (preparationNav) preparationNav.hidden = !canManageScheduledContent();
     };
 
     const renderTable = (id, headers, rows, emptyLabel) => {
@@ -1460,12 +1464,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (state.activeView === 'audit') await loadAudit();
             if (state.activeView === 'backgrounds') await window.GraceDeveloperTools.loadBackgrounds(client, state.session);
             if (state.activeView === 'operations') await window.GraceDeveloperTools.loadOperations(client, state.session);
+            if (state.activeView === 'experience') await window.GraceExperienceTools.loadRatings(client, state.session);
+            if (state.activeView === 'preparation') await window.GraceExperienceTools.loadPreparation(client, state.session);
         } catch (error) {
             showMessage('developerPortalMessage', error.message || 'Unable to load developer portal data.', 'error');
         }
     };
 
     const switchView = (view) => {
+        if ((view === 'experience' && !canRecoverPasswords()) ||
+            (view === 'preparation' && !canManageScheduledContent())) {
+            showMessage('developerPortalMessage', 'Your developer role does not have access to this section.', 'error');
+            return;
+        }
         if (view === 'finance' && !canManageFinancials()) {
             showMessage('developerPortalMessage', 'Your developer role does not have access to financial operations.', 'error');
             return;

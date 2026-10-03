@@ -27,6 +27,8 @@
             <button class="developer-nav-btn" data-view="issues"><i class="fas fa-bug"></i><span>Issues</span></button>
             <button class="developer-nav-btn" data-view="content"><i class="fas fa-calendar-day"></i><span>Daily Content</span></button>
             <button class="developer-nav-btn" data-view="backgrounds"><i class="fas fa-images"></i><span>Sharing Images</span></button>
+            <button class="developer-nav-btn" data-view="experience" hidden><i class="fas fa-star"></i><span>App Feedback</span></button>
+            <button class="developer-nav-btn" data-view="preparation" hidden><i class="fas fa-calendar-check"></i><span>Monthly Content</span></button>
             <button class="developer-nav-btn" data-view="operations"><i class="fas fa-sliders"></i><span>Operations</span></button>
             <button class="developer-nav-btn" id="developerFinanceNav" data-view="finance" hidden><i class="fas fa-chart-pie"></i><span>Financial</span></button>
             <button class="developer-nav-btn" data-view="users"><i class="fas fa-users"></i><span>Users</span></button>
@@ -333,6 +335,8 @@
             <div id="backgroundTools"></div>
         </section>
 
+        <section class="developer-view" id="view-experience"><div class="developer-section-heading"><div><h2>App feedback and review invitations</h2><p>Member responses, active usage and store-link visits.</p></div><button class="btn btn-secondary" data-refresh="experience">Refresh</button></div><div id="experienceTools"></div></section>
+        <section class="developer-view" id="view-preparation"><div class="developer-section-heading"><div><h2>Monthly content preparation</h2><p>Prepare daily quizzes and reading content once, then release them on schedule.</p></div><button class="btn btn-secondary" data-refresh="preparation">Refresh</button></div><div id="preparationTools"></div></section>
         <section class="developer-view" id="view-operations">
             <div class="developer-section-heading"><div><h2>Platform operations</h2><p>Payment readiness, delivery health, media cleanup and the one-time launch reset.</p></div><button class="btn btn-secondary" data-refresh="operations">Refresh</button></div>
             <div id="operationsTools"></div>
@@ -368,6 +372,7 @@
 
     <script src="../js/supabase-config.js?v=20260630-1"></script>
     <script src="../js/developer-tools.js?v=20260930-1"></script>
-    <script src="../js/developer-portal.js?v=20260930-1"></script>
+    <script src="../js/developer-engagement.js?v=20261002-1"></script>
+    <script src="../js/developer-portal.js?v=20261002-1"></script>
 </body>
 </html>

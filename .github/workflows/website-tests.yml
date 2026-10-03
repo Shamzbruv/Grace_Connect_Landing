@@ -13,4 +13,5 @@ jobs:
         with:
           node-version: '22.22.2'
       - run: node --check js/developer-tools.js
-      - run: node --test tests/*.test.cjs
+      - run: node --check js/developer-engagement.js
+      - run: node --test test/*.test.js tests/*.test.cjs
