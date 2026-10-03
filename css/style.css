@@ -4322,3 +4322,12 @@ h1, h2, h3, h4, h5 {
 .developer-table-wrap table { width: 100%; min-width: 580px; border-collapse: collapse; text-align: left; }
 .developer-table-wrap th, .developer-table-wrap td { padding: 12px; border-bottom: 1px solid #e2e6ed; vertical-align: top; }
 .developer-table-wrap td:first-child { max-width: 240px; overflow-wrap: anywhere; }
+
+/* Feedback and preparation forms fit phones without horizontal page panning. */
+#experienceTools, #preparationTools { min-width: 0; }
+#experienceTools .developer-panel + .developer-panel { margin-top: 16px; }
+#experienceTools .developer-panel p, #preparationTools .developer-panel p { margin-top: 12px; }
+#preparationTools .developer-action-row { flex-wrap: wrap; align-items: flex-end; margin-top: 16px; }
+#preparationTools .developer-action-row label { display: grid; gap: 8px; flex: 1 1 100%; min-width: 0; }
+#preparationTools input[type=month] { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid #657087; border-radius: 10px; background: #fff; color: #162238; }
+#preparationTools .developer-action-row button { flex: 1 1 130px; white-space: normal; }
