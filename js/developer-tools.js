@@ -132,6 +132,7 @@
 
     function renderOperations(root, data, client, session) {
         const reset = data.reset || {};
+        const protection = reset.review_protection || {};
         const count = value => Number.isFinite(Number(value)) ? Number(value).toLocaleString() : '—';
         const time = value => value ? new Date(value).toLocaleString() : 'Not yet';
         root.innerHTML = `
@@ -141,33 +142,44 @@
             <article class="developer-panel"><h3>Payments</h3><p>${data.payments_ready ? 'Gateway credentials configured. Confirm a real payment in the provider dashboard before opening paid subscriptions.' : 'Gateway setup is incomplete. Live subscription checkout cannot be enabled until server credentials are configured.'}</p>
               <p>Verified payment events: <strong>${count(data.payment_events)}</strong><br>Checkout sessions: <strong>${count(data.checkout_sessions)}</strong></p>
               <button type="button" class="btn btn-secondary" data-open-finance>Open financial tools</button>
-              <details><summary>Connect the payment gateway</summary><p>Configure FYGARO_KEY_ID, FYGARO_SECRET_KEY, FYGARO_BUTTON_URL and FYGARO_WEBHOOK_SECRET in Supabase Edge Function secrets. Never enter secret keys in public website code.</p><p>Set the gateway webhook to:</p><code class="operation-endpoint">${escape(data.payment_webhook)}</code><p>A verified, successful webhook updates the church subscription and its access. A browser redirect alone never grants paid access. Repeated webhook events are handled idempotently.</p></details>
+              <p>A verified, successful webhook updates the church subscription and its access. A browser redirect alone never grants paid access. Repeated webhook events are handled idempotently.</p>
+              ${session?.developer_role === 'super_developer' ? '<details><summary>Configure Fygaro securely</summary><div data-fygaro-settings></div></details>' : '<p>The platform owner manages Fygaro credentials in Operations.</p>'}
             </article>
             <article class="developer-panel"><h3>Media and moderation</h3><p>Private video storage: <strong>${data.media_ready ? 'Configured' : 'Needs configuration'}</strong></p><p>Storage cleanup queue: <strong>${count(data.media_cleanup_pending)}</strong><br>Reel cleanup queue: <strong>${count(data.reel_cleanup_pending)}</strong><br>Reels awaiting review: <strong>${count(data.reels_pending_review)}</strong></p><p>Database size: ${count(Math.round(Number(data.database_bytes) / 1048576))} MB</p><p>Disk activity is different from storage size. Review database performance if Supabase reports an I/O budget warning.</p></article>
           </div>
           <article class="developer-panel"><h3>Scheduled maintenance</h3><div class="developer-table-wrap"><table><thead><tr><th>Job</th><th>Schedule</th><th>Last result</th><th>Finished</th></tr></thead><tbody>${(data.schedules || []).map(job => `<tr><td>${escape(job.name)}</td><td>${job.active ? 'Enabled' : 'Disabled'}</td><td>${escape(job.last_status || 'No run recorded')}</td><td>${escape(time(job.last_finished))}</td></tr>`).join('')}</tbody></table></div><p>A successful scheduler result confirms dispatch; check function logs when a cleanup queue remains pending.</p></article>
           <article class="developer-panel reset-panel"><h3>One-time launch reset</h3>
             ${reset.used ? `<p><strong>${reset.phase === 'complete' ? 'Reset completed' : 'Reset in progress: ' + escape(reset.phase)}</strong></p><p>This one-time action has been consumed and cannot be started again.</p><p>Started: ${escape(time(reset.started_at))}<br>Completed: ${escape(time(reset.completed_at))}</p>${reset.last_error ? `<p role="alert">${escape(reset.last_error)}</p>` : ''}` : `
-              <p>This permanently removes all other user accounts, churches, posts, messages, reels, attendance, subscriptions and uploaded media. Only <strong>${escape(reset.preserved_account)}</strong> and essential app definitions remain.</p>
+              <p>This permanently removes all other user accounts, churches, posts, messages, reels, attendance, subscriptions and uploaded media. Your developer account <strong>${escape(reset.preserved_account)}</strong>, the configured Google Play review accounts, their churches and linked records/media remain. Members and authors required by the protected church are kept so its content and permissions still work. Payment configuration and essential app definitions remain.</p>
               <p>Resetting app subscriptions does not cancel charges at an external payment provider. Backups and provider records follow their separate retention policies.</p>
               <p>App writes and new signups pause during cleanup. It takes at least 16 minutes so previously issued upload links can expire. Keep a backup before using this irreversible action.</p>
-              <p>${count(reset.other_accounts)} other accounts · ${count(reset.churches)} churches · ${count(reset.storage_objects)} stored files, plus all R2 media</p>
+              <p>Current totals: ${count(reset.other_accounts)} other accounts · ${count(reset.churches)} churches · ${count(reset.storage_objects)} stored files. Protected records are excluded from deletion.</p>
+              <div data-review-protection></div>
+              <p>${protection.configured ? `Protected review logins: <strong>${(protection.review_emails || []).map(escape).join(', ')}</strong><br>Churches: ${(protection.churches || []).map(c=>escape(c.name)).join(', ')}<br>Last protection preview: ${count(protection.kept_accounts)} accounts · ${count(protection.kept_rows)} records · ${count(protection.kept_media)} files. The server rechecks dependencies when a reset begins.` : 'Reset is locked until the existing Google Play review accounts and their church are configured below.'}</p>
               ${reset.can_start && session?.developer_role === 'super_developer' ? (data.reset_ready ? `
                 <form data-reset-form class="developer-access-form">
                   <label class="developer-form-field">Your current password<input name="password" type="password" autocomplete="current-password" required maxlength="1024"></label>
-                  <label class="developer-form-field">Type DELETE ALL DATA EXCEPT MY DEVELOPER ACCOUNT<input name="confirmation" autocomplete="off" spellcheck="false" required></label>
-                  <label><input name="understood" type="checkbox" required> I understand this permanently deletes all other accounts and app data.</label>
+                  <label class="developer-form-field">Type RESET APP EXCEPT PROTECTED ACCOUNTS AND CHURCHES<input name="confirmation" autocomplete="off" spellcheck="false" required></label>
+                  <label><input name="understood" type="checkbox" required> I have checked the protected review accounts and church. I understand all unprotected accounts and app data will be permanently deleted.</label>
                   <button type="submit" class="btn reset-button">Permanently reset app once</button>
                 </form>` : '<p role="status">Reset is unavailable until the private media service and scheduled cleanup worker are configured.</p>') : '<p>Only the platform owner can start this reset.</p>'}`}
           </article>`;
         root.querySelector('[data-refresh-operations]').addEventListener('click', () => loadOperations(client, session).catch(error => notice(root, error.message || 'Could not refresh status.')));
         root.querySelector('[data-open-finance]').addEventListener('click', () => document.querySelector('[data-view="finance"]')?.click());
+        if (session?.developer_role === 'super_developer' && window.GraceFygaroSettings) {
+            window.GraceFygaroSettings.load(root.querySelector('[data-fygaro-settings]'),client)
+              .catch(error=>notice(root,error.message || 'Payment settings could not be loaded.'));
+        }
+        if (!reset.used && session?.developer_role === 'super_developer' && window.GraceReviewProtection) {
+            window.GraceReviewProtection.render(root.querySelector('[data-review-protection]'),protection,client,
+                ()=>loadOperations(client,session));
+        }
         root.querySelector('[data-reset-form]')?.addEventListener('submit', async event => {
             event.preventDefault();
             const form = event.currentTarget;
             const button = form.querySelector('button[type=submit]');
             if (button.disabled) return;
-            if (form.elements.confirmation.value !== 'DELETE ALL DATA EXCEPT MY DEVELOPER ACCOUNT' || !form.elements.understood.checked) {
+            if (form.elements.confirmation.value !== 'RESET APP EXCEPT PROTECTED ACCOUNTS AND CHURCHES' || !form.elements.understood.checked) {
                 notice(root, 'Enter the exact confirmation phrase and acknowledge the deletion.');
                 return;
             }
